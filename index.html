@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>编舟记 · 阅读</title>
+<title>编舟记</title>
 <style>
   :root{
     --bg:#f5f6f8;
@@ -46,8 +46,8 @@
   .mod.locked{opacity:.55;}
 
   /* Stats */
-  .stats{display:flex;gap:10px;padding:14px 16px 4px;}
-  .stat{flex:1;background:var(--card);border-radius:12px;padding:12px;text-align:center;box-shadow:var(--shadow);}
+  .stats{display:flex;gap:10px;padding:14px 16px 4px;flex-wrap:wrap;}
+  .stat{flex:1;min-width:64px;background:var(--card);border-radius:12px;padding:12px;text-align:center;box-shadow:var(--shadow);}
   .stat .num{font-size:22px;font-weight:700;}
   .stat .lbl{font-size:12px;color:var(--muted);margin-top:2px;}
   .stat.want .num{color:var(--want);}
@@ -70,6 +70,7 @@
   .btn.ghost{background:var(--card);color:var(--primary);border:1px solid var(--line);font-weight:500;}
   .btn.sm{padding:6px 10px;font-size:13px;}
   .btn.danger{background:var(--danger);}
+  .btn.soft{background:rgba(255,255,255,.25);color:#fff;border:1px solid rgba(255,255,255,.5);}
 
   .filters{display:flex;gap:6px;padding:0 16px 12px;flex-wrap:wrap;}
   .chip{
@@ -116,13 +117,23 @@
   .section-title{display:flex;align-items:center;justify-content:space-between;margin:18px 4px 10px;}
   .section-title h3{font-size:15px;margin:0;}
   .entry{background:var(--card);border-radius:12px;padding:13px 14px;margin-bottom:10px;box-shadow:var(--shadow);position:relative;}
-  .entry .ehead{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-bottom:6px;}
-  .entry .page{background:var(--primary-soft);color:var(--primary);padding:2px 8px;border-radius:8px;font-size:11px;}
+  .entry .ehead{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-bottom:6px;gap:6px;flex-wrap:wrap;}
+  .entry .page{background:var(--primary-soft);color:var(--primary);padding:2px 8px;border-radius:8px;font-size:11px;white-space:nowrap;}
   .entry .content{font-size:14.5px;white-space:pre-wrap;word-break:break-word;}
   .entry .etags{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;}
   .entry .mood{font-size:16px;}
   .entry .del{position:absolute;top:10px;right:10px;color:var(--muted);cursor:pointer;font-size:13px;border:none;background:none;}
   .entry .del:active{color:var(--danger);}
+  .sub-tag{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--primary-soft);color:var(--primary);white-space:nowrap;}
+  .sub-tag.b{background:#fbe9e0;color:#c2643a;}
+  .ans-my{color:var(--danger);}
+  .ans-ok{color:var(--done);}
+
+  /* Countdown */
+  .countdown{margin:14px 16px 4px;background:linear-gradient(135deg,#4361a8,#5a7fd0);color:#fff;border-radius:14px;padding:16px;text-align:center;box-shadow:var(--shadow);}
+  .cd-num{font-size:34px;font-weight:800;line-height:1;}
+  .cd-lbl{font-size:13px;opacity:.92;margin-top:4px;}
+  .cd-past{font-size:18px;font-weight:700;}
 
   /* Modal */
   .mask{position:fixed;inset:0;background:rgba(20,24,33,.45);z-index:40;display:none;align-items:flex-end;justify-content:center;}
@@ -141,8 +152,8 @@
   }
   .field textarea{resize:vertical;min-height:74px;}
   .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--primary);}
-  .seg{display:flex;gap:8px;}
-  .seg .opt{flex:1;text-align:center;padding:9px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:14px;color:var(--muted);}
+  .seg{display:flex;gap:8px;flex-wrap:wrap;}
+  .seg .opt{flex:1;text-align:center;padding:9px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:14px;color:var(--muted);min-width:54px;}
   .seg .opt.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;}
   .star-pick{font-size:26px;letter-spacing:4px;cursor:pointer;}
   .star-pick span{color:var(--line);}
@@ -151,6 +162,8 @@
   .row2 .field{flex:1;}
   .sheet-actions{display:flex;gap:10px;margin-top:6px;}
   .sheet-actions .btn{flex:1;}
+  .picker-opt{padding:13px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;cursor:pointer;font-size:15px;background:var(--card);}
+  .picker-opt:active{background:var(--primary-soft);}
 
   /* Bottom nav */
   nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);
@@ -176,17 +189,17 @@
   <header>
     <div class="brand">
       <h1>编舟记</h1>
-      <span class="sub">个人知识体系 · 阅读</span>
+      <span class="sub" id="brandSub">个人知识体系 · 阅读</span>
     </div>
     <div class="modules" id="modules">
-      <span class="mod active">阅读</span>
-      <span class="mod locked">英语学习</span>
+      <span class="mod active" data-mod="reading">阅读</span>
+      <span class="mod" data-mod="en">英语学习</span>
       <span class="mod locked">运动健身</span>
-      <span class="mod locked">中项备考</span>
+      <span class="mod" data-mod="pmp">中项备考</span>
     </div>
   </header>
 
-  <!-- 书架视图 -->
+  <!-- 阅读：书架视图 -->
   <div id="shelfView">
     <div class="stats" id="stats"></div>
     <div class="toolbar">
@@ -206,7 +219,7 @@
     <main><div class="book-list" id="bookList"></div></main>
   </div>
 
-  <!-- 详情视图 -->
+  <!-- 阅读：详情视图 -->
   <div id="detailView" class="detail">
     <div style="padding:14px 16px 0">
       <div class="back" id="backBtn">← 返回书架</div>
@@ -224,6 +237,75 @@
       </div>
       <div id="reflectionList"></div>
     </div>
+  </div>
+
+  <!-- 英语学习视图 -->
+  <div id="enView" class="hidden">
+    <div class="stats" id="enStats"></div>
+    <div class="toolbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="enSearch" placeholder="搜索打卡或词条">
+      </div>
+    </div>
+    <div class="filters" id="enTypeFilters">
+      <span class="chip active" data-en-type="all">全部</span>
+      <span class="chip" data-en-type="单词">单词</span>
+      <span class="chip" data-en-type="阅读">阅读</span>
+      <span class="chip" data-en-type="听力">听力</span>
+      <span class="chip" data-en-type="口语">口语</span>
+      <span class="chip" data-en-type="语法">语法</span>
+      <span class="chip" data-en-type="其他">其他</span>
+    </div>
+    <main>
+      <div class="section-title">
+        <h3>✅ 学习打卡</h3>
+        <button class="btn sm ghost" id="enAddCheckinBtn">+ 打卡</button>
+      </div>
+      <div id="enCheckinList"></div>
+      <div class="section-title">
+        <h3>📘 积累本</h3>
+        <button class="btn sm ghost" id="enAddVocabBtn">+ 词条</button>
+      </div>
+      <div id="enVocabList"></div>
+    </main>
+  </div>
+
+  <!-- 中项备考视图 -->
+  <div id="pmpView" class="hidden">
+    <div class="countdown" id="pmpCountdown"></div>
+    <div class="stats" id="pmpStats"></div>
+    <div class="toolbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="pmpSearch" placeholder="搜索打卡/知识点/错题">
+      </div>
+    </div>
+    <div class="filters" id="pmpSubFilters">
+      <span class="chip active" data-pmp-sub="all">全部科目</span>
+    </div>
+    <main>
+      <div class="section-title">
+        <h3>✅ 学习打卡</h3>
+        <button class="btn sm ghost" id="pmpAddCheckinBtn">+ 打卡</button>
+      </div>
+      <div id="pmpCheckinList"></div>
+      <div class="section-title">
+        <h3>📒 知识点</h3>
+        <button class="btn sm ghost" id="pmpAddNoteBtn">+ 知识点</button>
+      </div>
+      <div id="pmpNoteList"></div>
+      <div class="section-title">
+        <h3>❌ 错题本</h3>
+        <button class="btn sm ghost" id="pmpAddMistakeBtn">+ 错题</button>
+      </div>
+      <div id="pmpMistakeList"></div>
+      <div class="section-title">
+        <h3>📊 模拟成绩</h3>
+        <button class="btn sm ghost" id="pmpAddScoreBtn">+ 成绩</button>
+      </div>
+      <div id="pmpScoreList"></div>
+    </main>
   </div>
 
   <nav>
@@ -317,6 +399,137 @@
   </div>
 </div>
 
+<!-- 英语：打卡弹窗 -->
+<div class="mask" id="enCheckinMask">
+  <div class="sheet">
+    <h2>学习打卡</h2>
+    <div class="row2">
+      <div class="field"><label>日期</label><input id="enCkDate" type="date"></div>
+      <div class="field"><label>时长(分钟)</label><input id="enCkMin" type="number" min="0" placeholder="30"></div>
+    </div>
+    <div class="field">
+      <label>类型</label>
+      <div class="seg" id="enCkType">
+        <div class="opt active" data-v="单词">单词</div>
+        <div class="opt" data-v="阅读">阅读</div>
+        <div class="opt" data-v="听力">听力</div>
+        <div class="opt" data-v="口语">口语</div>
+        <div class="opt" data-v="语法">语法</div>
+        <div class="opt" data-v="其他">其他</div>
+      </div>
+    </div>
+    <div class="field"><label>备注</label><textarea id="enCkNote" placeholder="学了什么、感受如何…"></textarea></div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="enCkCancel">取消</button>
+      <button class="btn" id="enCkSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 英语：词条弹窗 -->
+<div class="mask" id="enVocabMask">
+  <div class="sheet">
+    <h2>词条积累</h2>
+    <div class="field"><label>单词 / 短语 / 句子 *</label><input id="enVbWord" placeholder="serendipity"></div>
+    <div class="field"><label>释义</label><input id="enVbMeaning" placeholder="意外发现美好事物的能力"></div>
+    <div class="field"><label>例句</label><textarea id="enVbExample" placeholder="A fortunate stroke of serendipity."></textarea></div>
+    <div class="field"><label>标签（逗号分隔）</label><input id="enVbTags" placeholder="词汇, 积极"></div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="enVbCancel">取消</button>
+      <button class="btn" id="enVbSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 中项：考试日期弹窗 -->
+<div class="mask" id="pmpExamMask">
+  <div class="sheet">
+    <h2>设置考试日期</h2>
+    <div class="field"><label>考试日期</label><input id="pmpExamDate" type="date"></div>
+    <p style="font-size:12px;color:var(--muted);line-height:1.5;">中项（系统集成项目管理工程师）每年 5 月与 11 月各有一次考试，设置后可看到倒计时。</p>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="pmpExamCancel">取消</button>
+      <button class="btn" id="pmpExamSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 中项：打卡弹窗 -->
+<div class="mask" id="pmpCheckinMask">
+  <div class="sheet">
+    <h2>学习打卡</h2>
+    <div class="row2">
+      <div class="field"><label>日期</label><input id="pmpCkDate" type="date"></div>
+      <div class="field"><label>时长(分钟)</label><input id="pmpCkMin" type="number" min="0" placeholder="60"></div>
+    </div>
+    <div class="field"><label>科目</label><select id="pmpCkSubject"></select></div>
+    <div class="field"><label>章节 / 内容</label><input id="pmpCkChapter" placeholder="第4章 项目范围管理"></div>
+    <div class="field"><label>备注</label><textarea id="pmpCkNote" placeholder="学习收获、疑问…"></textarea></div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="pmpCkCancel">取消</button>
+      <button class="btn" id="pmpCkSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 中项：知识点弹窗 -->
+<div class="mask" id="pmpNoteMask">
+  <div class="sheet">
+    <h2>知识点</h2>
+    <div class="field"><label>标题 *</label><input id="pmpNtTitle" placeholder="WBS 的定义与作用"></div>
+    <div class="field"><label>科目</label><select id="pmpNtSubject"></select></div>
+    <div class="field"><label>内容 *</label><textarea id="pmpNtContent" placeholder="把容易混的知识点记清楚…"></textarea></div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="pmpNtCancel">取消</button>
+      <button class="btn" id="pmpNtSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 中项：错题弹窗 -->
+<div class="mask" id="pmpMistakeMask">
+  <div class="sheet">
+    <h2>错题</h2>
+    <div class="field"><label>题目 *</label><textarea id="pmpMsQuestion" placeholder="题干…"></textarea></div>
+    <div class="field"><label>我的答案</label><textarea id="pmpMsMy" class="ans-my" placeholder="当时选了什么"></textarea></div>
+    <div class="field"><label>正确答案</label><textarea id="pmpMsCorrect" class="ans-ok" placeholder="正确选项与要点"></textarea></div>
+    <div class="field"><label>解析</label><textarea id="pmpMsAnalysis" placeholder="为什么错、对应知识点…"></textarea></div>
+    <div class="field"><label>知识点标签</label><input id="pmpMsTag" placeholder="范围管理"></div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="pmpMsCancel">取消</button>
+      <button class="btn" id="pmpMsSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 中项：成绩弹窗 -->
+<div class="mask" id="pmpScoreMask">
+  <div class="sheet">
+    <h2>模拟成绩</h2>
+    <div class="row2">
+      <div class="field"><label>日期</label><input id="pmpScDate" type="date"></div>
+      <div class="field"><label>分数 *</label><input id="pmpScScore" type="number" min="0" placeholder="58"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>科目</label><select id="pmpScSubject"></select></div>
+      <div class="field"><label>满分</label><input id="pmpScTotal" type="number" min="1" value="75" placeholder="75"></div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="pmpScCancel">取消</button>
+      <button class="btn" id="pmpScSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 通用添加选择 -->
+<div class="mask" id="addPickMask">
+  <div class="sheet">
+    <h2 id="addPickTitle">添加</h2>
+    <div id="addPickList"></div>
+    <div class="sheet-actions"><button class="btn ghost" id="addPickCancel">取消</button></div>
+  </div>
+</div>
+
 <!-- 数据视图 -->
 <div class="mask" id="dataMask">
   <div class="sheet">
@@ -345,21 +558,46 @@
 "use strict";
 const KEY = "bianzhouji_v1";
 const COVER_COLORS = ["#4361a8","#e08a5d","#5aa17a","#9b6fb0","#c9806b","#4a9db5","#d08a4f","#6b8f4e"];
-let DB = { books:[], excerpts:[], reflections:[] };
-let state = { status:"all", dir:"all", search:"", curBook:null, editingBook:null, rating:0 };
+const PMP_SUBJECTS = ["信息系统项目管理基础","项目立项管理","项目整合管理","项目范围管理","项目进度管理","项目成本管理","项目质量管理","项目资源管理","项目沟通管理","项目风险管理","项目采购管理","项目干系人管理","合同管理","法律法规","英语","专业实务","其他"];
+const SUB = {
+  reading:"个人知识体系 · 阅读",
+  en:"个人知识体系 · 英语学习",
+  pmp:"个人知识体系 · 中项备考"
+};
+
+let DB = {
+  books:[], excerpts:[], reflections:[],
+  en:{ checkins:[], vocab:[] },
+  pmp:{ exam:null, checkins:[], notes:[], mistakes:[], scores:[] }
+};
+let currentModule = "reading";
+let state = { status:"all", dir:"all", search:"", curBook:null, editingBook:null, rating:0,
+  enType:"all", enSearch:"", pmpSub:"all", pmpSearch:"" };
 
 /* ---------- 存储 ---------- */
 function load(){
   try{
     const raw = localStorage.getItem(KEY);
-    if(raw){ DB = JSON.parse(raw); }
-    else { seed(); save(); }
+    if(raw){
+      const d = JSON.parse(raw);
+      DB.books = d.books||[];
+      DB.excerpts = d.excerpts||[];
+      DB.reflections = d.reflections||[];
+      DB.en = d.en||{checkins:[],vocab:[]};
+      DB.en.checkins = DB.en.checkins||[];
+      DB.en.vocab = DB.en.vocab||[];
+      DB.pmp = d.pmp||{exam:null,checkins:[],notes:[],mistakes:[],scores:[]};
+      DB.pmp.checkins = DB.pmp.checkins||[];
+      DB.pmp.notes = DB.pmp.notes||[];
+      DB.pmp.mistakes = DB.pmp.mistakes||[];
+      DB.pmp.scores = DB.pmp.scores||[];
+      DB.pmp.exam = DB.pmp.exam||null;
+    } else { seed(); save(); }
   }catch(e){ console.warn(e); }
 }
 function save(){ localStorage.setItem(KEY, JSON.stringify(DB)); }
 
 function seed(){
-  // 首启动预置《动物农场》示例，方便上手（可随意删除）
   const id = uid();
   DB.books.push({
     id, title:"动物农场", author:"乔治·奥威尔", dir:"文学", status:"reading",
@@ -385,9 +623,41 @@ function esc(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1600); }
 function colorFor(str){ let h=0; for(const c of (str||"")) h=(h*31+c.charCodeAt(0))>>>0; return COVER_COLORS[h%COVER_COLORS.length]; }
 function starStr(n){ return n>0 ? "★".repeat(n)+"☆".repeat(5-n) : ""; }
+function tagsHtml(s){ if(!s) return ""; return s.split(/[,，]/).filter(Boolean).map(t=>`<span class="tag">${esc(t.trim())}</span>`).join(""); }
+function daysBetween(a,b){ return Math.ceil((new Date(b)-new Date(a))/86400000); }
+function recentSumMinutes(list, days){
+  const cut = Date.now()-days*86400000;
+  return list.filter(x=>x.createdAt>=cut).reduce((s,x)=>s+(+x.minutes||0),0);
+}
+function streakDays(list, field){
+  const set = new Set(list.map(x=>x[field]));
+  if(set.size===0) return 0;
+  let cnt=0; const d=new Date();
+  for(;;){
+    const ds = d.toISOString().slice(0,10);
+    if(set.has(ds)){ cnt++; d.setDate(d.getDate()-1); } else break;
+  }
+  return cnt;
+}
 const STATUS_LABEL={want:"想读",reading:"在读",done:"已读"};
 
-/* ---------- 渲染：书架 ---------- */
+/* ---------- 模块切换 ---------- */
+function switchModule(m){
+  if(m==="locked") return;
+  currentModule = m;
+  document.querySelectorAll(".mod").forEach(x=>x.classList.toggle("active", x.dataset.mod===m));
+  document.getElementById("brandSub").textContent = SUB[m] || "";
+  document.getElementById("shelfView").classList.toggle("hidden", m!=="reading");
+  document.getElementById("detailView").classList.remove("show");
+  document.getElementById("enView").classList.toggle("hidden", m!=="en");
+  document.getElementById("pmpView").classList.toggle("hidden", m!=="pmp");
+  window.scrollTo(0,0);
+  if(m==="reading") renderAll();
+  else if(m==="en") renderEn();
+  else if(m==="pmp"){ renderPmpCountdown(); renderPmp(); }
+}
+
+/* ---------- 阅读：书架 ---------- */
 function renderStats(){
   const b=DB.books;
   const want=b.filter(x=>x.status==="want").length;
@@ -444,7 +714,7 @@ function renderBooks(){
   });
 }
 
-/* ---------- 详情 ---------- */
+/* ---------- 阅读：详情 ---------- */
 function openDetail(id){
   state.curBook=id;
   const b=DB.books.find(x=>x.id===id);
@@ -486,7 +756,7 @@ function renderEntries(){
       <button class="del" data-type="ex" data-id="${e.id}">删除</button>
       <div class="ehead"><span class="page">${esc(e.page||"书摘")}</span></div>
       <div class="content">${esc(e.content)}</div>
-      ${e.tags?`<div class="etags">${e.tags.split(/[,，]/).filter(Boolean).map(t=>`<span class="tag">${esc(t.trim())}</span>`).join("")}</div>`:""}
+      ${e.tags?`<div class="etags">${tagsHtml(e.tags)}</div>`:""}
     </div>`).join("") : `<div class="empty" style="padding:24px">还没有书摘</div>`;
 
   const rfs=DB.reflections.filter(r=>r.bookId===id).sort((a,b)=>a.createdAt-b.createdAt);
@@ -513,7 +783,7 @@ function backToShelf(){
   document.getElementById("shelfView").classList.remove("hidden");
 }
 
-/* ---------- 书籍弹窗 ---------- */
+/* ---------- 阅读：书籍弹窗 ---------- */
 function setStars(n){ state.rating=n;
   document.querySelectorAll("#bkStars span").forEach(s=>s.classList.toggle("on",+s.dataset.v<=n)); }
 function openBookSheet(id){
@@ -551,7 +821,7 @@ function saveBook(){
   save(); hideMask("bookMask"); renderAll(); toast("已保存");
 }
 
-/* ---------- 书摘 / 感想弹窗 ---------- */
+/* ---------- 阅读：书摘 / 感想 ---------- */
 function saveExcerpt(){
   const content=document.getElementById("exContent").value.trim();
   if(!content){ toast("请填写书摘内容"); return; }
@@ -571,20 +841,285 @@ function saveReflection(){
   save(); hideMask("refMask"); renderEntries(); renderBooks(); toast("已添加感想");
 }
 
+/* ---------- 英语学习 ---------- */
+function renderEn(){
+  const en=DB.en;
+  const days=new Set(en.checkins.map(c=>c.date)).size;
+  const recent=recentSumMinutes(en.checkins,7);
+  const streak=streakDays(en.checkins,"date");
+  document.getElementById("enStats").innerHTML=`
+    <div class="stat"><div class="num">${days}</div><div class="lbl">累计天数</div></div>
+    <div class="stat reading"><div class="num">${recent}</div><div class="lbl">近7天分钟</div></div>
+    <div class="stat done"><div class="num">${streak}</div><div class="lbl">连续天数</div></div>
+    <div class="stat want"><div class="num">${en.vocab.length}</div><div class="lbl">词条数</div></div>`;
+
+  let cs=en.checkins.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  if(state.enType!=="all") cs=cs.filter(c=>c.type===state.enType);
+  const q=state.enSearch.trim().toLowerCase();
+  if(q) cs=cs.filter(c=>(c.note||"").toLowerCase().includes(q)||c.type.toLowerCase().includes(q));
+  document.getElementById("enCheckinList").innerHTML = cs.length? cs.map(c=>`
+    <div class="entry">
+      <button class="del" data-type="enCk" data-id="${c.id}">删除</button>
+      <div class="ehead"><span>${esc(c.date)}</span><span class="sub-tag">${esc(c.type)}</span><span class="page">${c.minutes||0} 分钟</span></div>
+      ${c.note?`<div class="content">${esc(c.note)}</div>`:""}
+    </div>`).join("") : `<div class="empty" style="padding:24px">还没有打卡</div>`;
+
+  const vs=en.vocab.slice().sort((a,b)=>b.createdAt-a.createdAt);
+  document.getElementById("enVocabList").innerHTML = vs.length? vs.map(v=>`
+    <div class="entry">
+      <button class="del" data-type="enVb" data-id="${v.id}">删除</button>
+      <div class="ehead"><span class="page">📘</span>${v.tags?tagsHtml(v.tags):""}</div>
+      <div class="content"><b>${esc(v.word)}</b>${v.meaning?` — ${esc(v.meaning)}`:""}</div>
+      ${v.example?`<div class="content" style="color:var(--muted);font-size:13px;margin-top:4px">${esc(v.example)}</div>`:""}
+    </div>`).join("") : `<div class="empty" style="padding:24px">积累本还是空的</div>`;
+
+  document.querySelectorAll("#enView .del").forEach(btn=>{
+    btn.onclick=()=>{
+      const {type,id:eid}=btn.dataset;
+      if(confirm("删除这条记录？")){
+        if(type==="enCk") DB.en.checkins=DB.en.checkins.filter(x=>x.id!==eid);
+        else DB.en.vocab=DB.en.vocab.filter(x=>x.id!==eid);
+        save(); renderEn(); toast("已删除");
+      }
+    };
+  });
+}
+function openEnCheckin(){
+  document.getElementById("enCkDate").value=today();
+  document.getElementById("enCkMin").value="";
+  document.getElementById("enCkNote").value="";
+  document.querySelectorAll("#enCkType .opt").forEach(o=>o.classList.toggle("active",o.dataset.v==="单词"));
+  showMask("enCheckinMask");
+}
+function saveEnCheckin(){
+  const date=document.getElementById("enCkDate").value||today();
+  const type=document.querySelector("#enCkType .opt.active").dataset.v;
+  DB.en.checkins.push({
+    id:uid(), date, type,
+    minutes:parseInt(document.getElementById("enCkMin").value||"0",10)||0,
+    note:document.getElementById("enCkNote").value.trim(), createdAt:Date.now()
+  });
+  save(); hideMask("enCheckinMask"); renderEn(); toast("已打卡");
+}
+function openEnVocab(){
+  document.getElementById("enVbWord").value="";
+  document.getElementById("enVbMeaning").value="";
+  document.getElementById("enVbExample").value="";
+  document.getElementById("enVbTags").value="";
+  showMask("enVocabMask");
+}
+function saveEnVocab(){
+  const word=document.getElementById("enVbWord").value.trim();
+  if(!word){ toast("请填写单词/短语"); return; }
+  DB.en.vocab.push({
+    id:uid(), word,
+    meaning:document.getElementById("enVbMeaning").value.trim(),
+    example:document.getElementById("enVbExample").value.trim(),
+    tags:document.getElementById("enVbTags").value.trim(), createdAt:Date.now()
+  });
+  save(); hideMask("enVocabMask"); renderEn(); toast("已添加词条");
+}
+
+/* ---------- 中项备考 ---------- */
+function renderPmpCountdown(){
+  const el=document.getElementById("pmpCountdown");
+  const exam=DB.pmp.exam;
+  if(!exam){
+    el.innerHTML=`<div class="cd-lbl">未设置考试日期</div><button class="btn sm soft" id="pmpEditExam">设置考试日期</button>`;
+  }else{
+    const n=daysBetween(today(),exam);
+    if(n>0) el.innerHTML=`<div class="cd-num">${n}</div><div class="cd-lbl">天后考试（${exam}）</div><button class="btn sm soft" id="pmpEditExam">改日期</button>`;
+    else el.innerHTML=`<div class="cd-past">考试日（${exam}）已到</div><button class="btn sm soft" id="pmpEditExam">改日期</button>`;
+  }
+  const b=document.getElementById("pmpEditExam"); if(b) b.onclick=openPmpExam;
+}
+function renderPmpSubjectsFilter(){
+  const subs=[...new Set(DB.pmp.checkins.map(c=>c.subject).filter(Boolean)
+    .concat(DB.pmp.notes.map(n=>n.subject).filter(Boolean)))];
+  let html=`<span class="chip ${state.pmpSub==="all"?"active":""}" data-pmp-sub="all">全部科目</span>`;
+  subs.forEach(s=>{ html+=`<span class="chip ${state.pmpSub===s?"active":""}" data-pmp-sub="${esc(s)}">${esc(s)}</span>`; });
+  document.getElementById("pmpSubFilters").innerHTML=html;
+  document.querySelectorAll("#pmpSubFilters .chip").forEach(c=>{
+    c.onclick=()=>{ state.pmpSub=c.dataset.pmpSub; renderPmpSubjectsFilter(); renderPmp(); };
+  });
+}
+function renderPmp(){
+  const p=DB.pmp;
+  const days=new Set(p.checkins.map(c=>c.date)).size;
+  const total=p.checkins.reduce((s,c)=>s+(+c.minutes||0),0);
+  const lastScore=p.scores.length?p.scores.slice().sort((a,b)=>b.date.localeCompare(a.date))[0]:"";
+  document.getElementById("pmpStats").innerHTML=`
+    <div class="stat"><div class="num">${days}</div><div class="lbl">打卡天数</div></div>
+    <div class="stat reading"><div class="num">${Math.round(total/60)}</div><div class="lbl">总时长(时)</div></div>
+    <div class="stat done"><div class="num">${p.notes.length}</div><div class="lbl">知识点</div></div>
+    <div class="stat want"><div class="num">${p.mistakes.length}</div><div class="lbl">错题</div></div>
+    <div class="stat"><div class="num">${lastScore?lastScore.score:0}</div><div class="lbl">最近成绩</div></div>`;
+
+  const q=state.pmpSearch.trim().toLowerCase();
+  const sub=state.pmpSub;
+
+  let cs=p.checkins.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  if(sub!=="all") cs=cs.filter(c=>c.subject===sub);
+  if(q) cs=cs.filter(c=>(c.chapter||"").toLowerCase().includes(q)||(c.note||"").toLowerCase().includes(q)||(c.subject||"").toLowerCase().includes(q));
+  document.getElementById("pmpCheckinList").innerHTML = cs.length? cs.map(c=>`
+    <div class="entry">
+      <button class="del" data-type="pmpCk" data-id="${c.id}">删除</button>
+      <div class="ehead"><span>${esc(c.date)}</span><span class="sub-tag">${esc(c.subject)}</span><span class="page">${c.minutes||0} 分钟</span></div>
+      ${c.chapter?`<div class="content">${esc(c.chapter)}</div>`:""}
+      ${c.note?`<div class="content" style="color:var(--muted);font-size:13px;margin-top:4px">${esc(c.note)}</div>`:""}
+    </div>`).join("") : `<div class="empty" style="padding:24px">还没有打卡</div>`;
+
+  let ns=p.notes.slice().sort((a,b)=>b.createdAt-a.createdAt);
+  if(sub!=="all") ns=ns.filter(n=>n.subject===sub);
+  if(q) ns=ns.filter(n=>(n.title||"").toLowerCase().includes(q)||(n.content||"").toLowerCase().includes(q));
+  document.getElementById("pmpNoteList").innerHTML = ns.length? ns.map(n=>`
+    <div class="entry">
+      <button class="del" data-type="pmpNt" data-id="${n.id}">删除</button>
+      <div class="ehead"><span class="sub-tag b">${esc(n.subject)}</span></div>
+      <div class="content"><b>${esc(n.title)}</b></div>
+      <div class="content" style="color:#55606e;font-size:14px;margin-top:4px;white-space:pre-wrap">${esc(n.content)}</div>
+    </div>`).join("") : `<div class="empty" style="padding:24px">还没有知识点</div>`;
+
+  let ms=p.mistakes.slice().sort((a,b)=>b.createdAt-a.createdAt);
+  if(sub!=="all") ms=ms.filter(m=>m.tag===sub);
+  if(q) ms=ms.filter(m=>(m.question||"").toLowerCase().includes(q)||(m.analysis||"").toLowerCase().includes(q)||(m.tag||"").toLowerCase().includes(q));
+  document.getElementById("pmpMistakeList").innerHTML = ms.length? ms.map(m=>`
+    <div class="entry">
+      <button class="del" data-type="pmpMs" data-id="${m.id}">删除</button>
+      <div class="ehead"><span class="sub-tag">${esc(m.tag||"错题")}</span></div>
+      <div class="content"><b>题：</b>${esc(m.question)}</div>
+      ${m.my?`<div class="content ans-my" style="margin-top:4px"><b>我的：</b>${esc(m.my)}</div>`:""}
+      ${m.correct?`<div class="content ans-ok" style="margin-top:4px"><b>正确：</b>${esc(m.correct)}</div>`:""}
+      ${m.analysis?`<div class="content" style="color:#55606e;font-size:13px;margin-top:4px"><b>解析：</b>${esc(m.analysis)}</div>`:""}
+    </div>`).join("") : `<div class="empty" style="padding:24px">错题本还是空的</div>`;
+
+  let sc=p.scores.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  if(sub!=="all") sc=sc.filter(s=>s.subject===sub);
+  if(q) sc=sc.filter(s=>(s.subject||"").toLowerCase().includes(q));
+  document.getElementById("pmpScoreList").innerHTML = sc.length? sc.map(s=>{
+    const total=s.total||75; const pct=Math.round(s.score/total*100);
+    return `<div class="entry">
+      <button class="del" data-type="pmpSc" data-id="${s.id}">删除</button>
+      <div class="ehead"><span>${esc(s.date)}</span><span class="sub-tag">${esc(s.subject)}</span><span class="page">${s.score}/${total}（${pct}%）</span></div>
+    </div>`;
+  }).join("") : `<div class="empty" style="padding:24px">还没有成绩记录</div>`;
+
+  document.querySelectorAll("#pmpView .del").forEach(btn=>{
+    btn.onclick=()=>{
+      const {type,id:eid}=btn.dataset;
+      if(confirm("删除这条记录？")){
+        if(type==="pmpCk") DB.pmp.checkins=DB.pmp.checkins.filter(x=>x.id!==eid);
+        else if(type==="pmpNt") DB.pmp.notes=DB.pmp.notes.filter(x=>x.id!==eid);
+        else if(type==="pmpMs") DB.pmp.mistakes=DB.pmp.mistakes.filter(x=>x.id!==eid);
+        else if(type==="pmpSc") DB.pmp.scores=DB.pmp.scores.filter(x=>x.id!==eid);
+        save(); renderPmp(); toast("已删除");
+      }
+    };
+  });
+}
+function fillPmpSubjectSelect(selId){
+  document.getElementById(selId).innerHTML = PMP_SUBJECTS.map(s=>`<option>${s}</option>`).join("");
+}
+function openPmpExam(){
+  document.getElementById("pmpExamDate").value=DB.pmp.exam||"";
+  showMask("pmpExamMask");
+}
+function savePmpExam(){
+  DB.pmp.exam=document.getElementById("pmpExamDate").value||null;
+  save(); hideMask("pmpExamMask"); renderPmpCountdown(); toast(DB.pmp.exam?"已设置":"已清除");
+}
+function openPmpCheckin(){
+  document.getElementById("pmpCkDate").value=today();
+  document.getElementById("pmpCkMin").value="";
+  document.getElementById("pmpCkChapter").value="";
+  document.getElementById("pmpCkNote").value="";
+  fillPmpSubjectSelect("pmpCkSubject");
+  showMask("pmpCheckinMask");
+}
+function savePmpCheckin(){
+  DB.pmp.checkins.push({
+    id:uid(), date:document.getElementById("pmpCkDate").value||today(),
+    subject:document.getElementById("pmpCkSubject").value,
+    chapter:document.getElementById("pmpCkChapter").value.trim(),
+    minutes:parseInt(document.getElementById("pmpCkMin").value||"0",10)||0,
+    note:document.getElementById("pmpCkNote").value.trim(), createdAt:Date.now()
+  });
+  save(); hideMask("pmpCheckinMask"); renderPmpSubjectsFilter(); renderPmp(); toast("已打卡");
+}
+function openPmpNote(){
+  document.getElementById("pmpNtTitle").value="";
+  document.getElementById("pmpNtContent").value="";
+  fillPmpSubjectSelect("pmpNtSubject");
+  showMask("pmpNoteMask");
+}
+function savePmpNote(){
+  const title=document.getElementById("pmpNtTitle").value.trim();
+  if(!title){ toast("请填写标题"); return; }
+  DB.pmp.notes.push({
+    id:uid(), title,
+    subject:document.getElementById("pmpNtSubject").value,
+    content:document.getElementById("pmpNtContent").value.trim(), createdAt:Date.now()
+  });
+  save(); hideMask("pmpNoteMask"); renderPmpSubjectsFilter(); renderPmp(); toast("已保存");
+}
+function openPmpMistake(){
+  document.getElementById("pmpMsQuestion").value="";
+  document.getElementById("pmpMsMy").value="";
+  document.getElementById("pmpMsCorrect").value="";
+  document.getElementById("pmpMsAnalysis").value="";
+  document.getElementById("pmpMsTag").value="";
+  showMask("pmpMistakeMask");
+}
+function savePmpMistake(){
+  const q=document.getElementById("pmpMsQuestion").value.trim();
+  if(!q){ toast("请填写题目"); return; }
+  DB.pmp.mistakes.push({
+    id:uid(), question:q,
+    my:document.getElementById("pmpMsMy").value.trim(),
+    correct:document.getElementById("pmpMsCorrect").value.trim(),
+    analysis:document.getElementById("pmpMsAnalysis").value.trim(),
+    tag:document.getElementById("pmpMsTag").value.trim(), createdAt:Date.now()
+  });
+  save(); hideMask("pmpMistakeMask"); renderPmp(); toast("已添加错题");
+}
+function openPmpScore(){
+  document.getElementById("pmpScDate").value=today();
+  document.getElementById("pmpScScore").value="";
+  document.getElementById("pmpScTotal").value="75";
+  fillPmpSubjectSelect("pmpScSubject");
+  showMask("pmpScoreMask");
+}
+function savePmpScore(){
+  const score=parseInt(document.getElementById("pmpScScore").value||"0",10);
+  if(!score && score!==0){ toast("请填写分数"); return; }
+  DB.pmp.scores.push({
+    id:uid(), date:document.getElementById("pmpScDate").value||today(),
+    score, subject:document.getElementById("pmpScSubject").value,
+    total:parseInt(document.getElementById("pmpScTotal").value||"75",10)||75, createdAt:Date.now()
+  });
+  save(); hideMask("pmpScoreMask"); renderPmp(); toast("已记录");
+}
+
+/* ---------- 通用添加选择 ---------- */
+function openAddPicker(title, options){
+  document.getElementById("addPickTitle").textContent=title;
+  document.getElementById("addPickList").innerHTML=options.map((o,i)=>`<div class="picker-opt" data-i="${i}">${o.label}</div>`).join("");
+  document.querySelectorAll("#addPickList .picker-opt").forEach(el=>{
+    el.onclick=()=>{ hideMask("addPickMask"); options[+el.dataset.i].onClick(); };
+  });
+  showMask("addPickMask");
+}
+
 /* ---------- 弹窗通用 ---------- */
 function showMask(id){ document.getElementById(id).classList.add("show"); }
-function hideMask(id){ document.getElementById(id).classList.remove("show");
-  if(id==="bookMask"){ document.getElementById("bkTitle").value=""; setStars(0);}
-  if(id==="excerptMask"){ document.getElementById("exPage").value=""; document.getElementById("exContent").value=""; document.getElementById("exTags").value=""; }
-  if(id==="refMask"){ document.getElementById("rfDate").value=today(); document.getElementById("rfMood").value=""; document.getElementById("rfContent").value=""; }
-}
+function hideMask(id){ document.getElementById(id).classList.remove("show"); }
 
 /* ---------- 导出 / 导入 ---------- */
 function exportJSON(){
   const blob=new Blob([JSON.stringify(DB,null,2)],{type:"application/json"});
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a");
-  a.href=url; a.download=`编舟记-阅读备份-${today()}.json`;
+  a.href=url; a.download=`编舟记-备份-${today()}.json`;
   a.click(); URL.revokeObjectURL(url); toast("已导出");
 }
 function importJSON(file){
@@ -595,7 +1130,14 @@ function importJSON(file){
       DB.books=[...DB.books,...(data.books||[])];
       DB.excerpts=[...DB.excerpts,...(data.excerpts||[])];
       DB.reflections=[...DB.reflections,...(data.reflections||[])];
-      save(); renderAll(); hideMask("dataMask"); toast("导入完成");
+      const en=data.en||{}; DB.en.checkins=[...DB.en.checkins,...(en.checkins||[])]; DB.en.vocab=[...DB.en.vocab,...(en.vocab||[])];
+      const pmp=data.pmp||{};
+      DB.pmp.checkins=[...DB.pmp.checkins,...(pmp.checkins||[])];
+      DB.pmp.notes=[...DB.pmp.notes,...(pmp.notes||[])];
+      DB.pmp.mistakes=[...DB.pmp.mistakes,...(pmp.mistakes||[])];
+      DB.pmp.scores=[...DB.pmp.scores,...(pmp.scores||[])];
+      if(pmp.exam) DB.pmp.exam=pmp.exam;
+      save(); renderAll(); switchModule(currentModule); hideMask("dataMask"); toast("导入完成");
     }catch(e){ toast("文件格式错误"); }
   };
   r.readAsText(file);
@@ -606,11 +1148,30 @@ function renderAll(){ renderStats(); renderDirFilters(); renderBooks(); }
 
 /* ---------- 事件绑定 ---------- */
 function bind(){
+  // 模块切换
+  document.querySelectorAll(".mod").forEach(m=>{
+    m.onclick=()=>{ if(!m.classList.contains("locked")) switchModule(m.dataset.mod); else toast("该模块即将上线"); };
+  });
+
+  // 阅读
   document.getElementById("addBookBtn").onclick=()=>openBookSheet(null);
   document.getElementById("fab").onclick=()=>{
-    if(document.getElementById("detailView").classList.contains("show")){
-      showMask("excerptMask");
-    }else{ openBookSheet(null); }
+    if(currentModule==="reading"){
+      if(document.getElementById("detailView").classList.contains("show")) showMask("excerptMask");
+      else openBookSheet(null);
+    } else if(currentModule==="en"){
+      openAddPicker("英语学习 · 添加",[
+        {label:"✅ 学习打卡", onClick:openEnCheckin},
+        {label:"📘 词条积累", onClick:openEnVocab}
+      ]);
+    } else if(currentModule==="pmp"){
+      openAddPicker("中项备考 · 添加",[
+        {label:"✅ 学习打卡", onClick:openPmpCheckin},
+        {label:"📒 知识点", onClick:openPmpNote},
+        {label:"❌ 错题", onClick:openPmpMistake},
+        {label:"📊 模拟成绩", onClick:openPmpScore}
+      ]);
+    }
   };
   document.getElementById("bookCancel").onclick=()=>hideMask("bookMask");
   document.getElementById("bookSave").onclick=saveBook;
@@ -623,11 +1184,9 @@ function bind(){
   document.getElementById("addExcerptBtn").onclick=()=>showMask("excerptMask");
   document.getElementById("exCancel").onclick=()=>hideMask("excerptMask");
   document.getElementById("exSave").onclick=saveExcerpt;
-
   document.getElementById("addReflectionBtn").onclick=()=>showMask("refMask");
   document.getElementById("rfCancel").onclick=()=>hideMask("refMask");
   document.getElementById("rfSave").onclick=saveReflection;
-
   document.getElementById("backBtn").onclick=backToShelf;
 
   document.querySelectorAll("#statusFilters .chip").forEach(c=>c.onclick=()=>{
@@ -638,25 +1197,69 @@ function bind(){
     clearTimeout(st); st=setTimeout(()=>{ state.search=e.target.value; renderBooks(); },200);
   };
 
+  // 英语
+  document.getElementById("enAddCheckinBtn").onclick=openEnCheckin;
+  document.getElementById("enAddVocabBtn").onclick=openEnVocab;
+  document.getElementById("enCkCancel").onclick=()=>hideMask("enCheckinMask");
+  document.getElementById("enCkSave").onclick=saveEnCheckin;
+  document.querySelectorAll("#enCkType .opt").forEach(o=>o.onclick=()=>{
+    document.querySelectorAll("#enCkType .opt").forEach(x=>x.classList.remove("active"));
+    o.classList.add("active");
+  });
+  document.getElementById("enVbCancel").onclick=()=>hideMask("enVocabMask");
+  document.getElementById("enVbSave").onclick=saveEnVocab;
+  document.querySelectorAll("#enTypeFilters .chip").forEach(c=>c.onclick=()=>{
+    document.querySelectorAll("#enTypeFilters .chip").forEach(x=>x.classList.remove("active"));
+    c.classList.add("active"); state.enType=c.dataset.enType; renderEn();
+  });
+  let est; document.getElementById("enSearch").oninput=e=>{
+    clearTimeout(est); est=setTimeout(()=>{ state.enSearch=e.target.value; renderEn(); },200);
+  };
+
+  // 中项
+  document.getElementById("pmpAddCheckinBtn").onclick=openPmpCheckin;
+  document.getElementById("pmpAddNoteBtn").onclick=openPmpNote;
+  document.getElementById("pmpAddMistakeBtn").onclick=openPmpMistake;
+  document.getElementById("pmpAddScoreBtn").onclick=openPmpScore;
+  document.getElementById("pmpExamCancel").onclick=()=>hideMask("pmpExamMask");
+  document.getElementById("pmpExamSave").onclick=savePmpExam;
+  document.getElementById("pmpCkCancel").onclick=()=>hideMask("pmpCheckinMask");
+  document.getElementById("pmpCkSave").onclick=savePmpCheckin;
+  document.getElementById("pmpNtCancel").onclick=()=>hideMask("pmpNoteMask");
+  document.getElementById("pmpNtSave").onclick=savePmpNote;
+  document.getElementById("pmpMsCancel").onclick=()=>hideMask("pmpMistakeMask");
+  document.getElementById("pmpMsSave").onclick=savePmpMistake;
+  document.getElementById("pmpScCancel").onclick=()=>hideMask("pmpScoreMask");
+  document.getElementById("pmpScSave").onclick=savePmpScore;
+  let pst; document.getElementById("pmpSearch").oninput=e=>{
+    clearTimeout(pst); pst=setTimeout(()=>{ state.pmpSearch=e.target.value; renderPmp(); },200);
+  };
+
   // 底部导航
   document.querySelectorAll("nav .tab").forEach(t=>t.onclick=()=>{
     document.querySelectorAll("nav .tab").forEach(x=>x.classList.remove("active"));
     t.classList.add("active");
     if(t.dataset.view==="data"){
       document.getElementById("dataStats").innerHTML=
-        `共 ${DB.books.length} 本书 · ${DB.excerpts.length} 条书摘 · ${DB.reflections.length} 条感想`;
+        `阅读：${DB.books.length} 本 · ${DB.excerpts.length} 书摘 · ${DB.reflections.length} 感想<br>`+
+        `英语：${DB.en.checkins.length} 打卡 · ${DB.en.vocab.length} 词条<br>`+
+        `中项：${DB.pmp.checkins.length} 打卡 · ${DB.pmp.notes.length} 知识点 · ${DB.pmp.mistakes.length} 错题 · ${DB.pmp.scores.length} 成绩`;
       showMask("dataMask");
       document.querySelectorAll("nav .tab")[0].classList.add("active");
       t.classList.remove("active");
+    } else {
+      switchModule("reading");
     }
   });
   document.getElementById("dataClose").onclick=()=>hideMask("dataMask");
   document.getElementById("exportBtn").onclick=exportJSON;
   document.getElementById("importBtn").onclick=()=>document.getElementById("importFile").click();
   document.getElementById("importFile").onchange=e=>{ if(e.target.files[0]) importJSON(e.target.files[0]); };
+  document.getElementById("addPickCancel").onclick=()=>hideMask("addPickMask");
 
   // 点击遮罩空白处关闭
-  ["bookMask","excerptMask","refMask","dataMask"].forEach(id=>{
+  ["bookMask","excerptMask","refMask","enCheckinMask","enVocabMask","pmpExamMask",
+   "pmpCheckinMask","pmpNoteMask","pmpMistakeMask","pmpScoreMask","dataMask","addPickMask"].forEach(id=>{
     document.getElementById(id).onclick=e=>{ if(e.target.id===id) hideMask(id); };
   });
 }
