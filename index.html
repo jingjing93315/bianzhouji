@@ -37,7 +37,7 @@
   .brand{display:flex;align-items:baseline;gap:8px;}
   .brand h1{font-size:20px;margin:0;letter-spacing:1px;font-weight:700;}
   .brand .sub{font-size:12px;color:var(--muted);}
-  .modules{display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding-bottom:2px;}
+  .modules{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;padding-bottom:2px;}
   .mod{
     flex:0 0 auto;padding:5px 13px;border-radius:18px;font-size:13px;
     background:var(--bg);color:var(--muted);border:1px solid transparent;white-space:nowrap;
@@ -194,7 +194,6 @@
     <div class="modules" id="modules">
       <span class="mod active" data-mod="reading">阅读</span>
       <span class="mod" data-mod="en">英语学习</span>
-      <span class="mod locked">运动健身</span>
       <span class="mod" data-mod="pmp">中项备考</span>
       <span class="mod" data-mod="kj">初级会计</span>
     </div>
