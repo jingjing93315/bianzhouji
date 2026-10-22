@@ -196,6 +196,7 @@
       <span class="mod" data-mod="en">英语学习</span>
       <span class="mod locked">运动健身</span>
       <span class="mod" data-mod="pmp">中项备考</span>
+      <span class="mod" data-mod="kj">初级会计</span>
     </div>
   </header>
 
@@ -271,40 +272,40 @@
     </main>
   </div>
 
-  <!-- 中项备考视图 -->
-  <div id="pmpView" class="hidden">
-    <div class="countdown" id="pmpCountdown"></div>
-    <div class="stats" id="pmpStats"></div>
+  <!-- 考试通用视图（中项备考 / 初级会计） -->
+  <div id="examView" class="hidden">
+    <div class="countdown" id="examCountdown"></div>
+    <div class="stats" id="examStats"></div>
     <div class="toolbar">
       <div class="search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input id="pmpSearch" placeholder="搜索打卡/知识点/错题">
+        <input id="examSearch" placeholder="搜索打卡/知识点/错题">
       </div>
     </div>
-    <div class="filters" id="pmpSubFilters">
-      <span class="chip active" data-pmp-sub="all">全部科目</span>
+    <div class="filters" id="examSubFilters">
+      <span class="chip active" data-exam-sub="all">全部科目</span>
     </div>
     <main>
       <div class="section-title">
         <h3>✅ 学习打卡</h3>
-        <button class="btn sm ghost" id="pmpAddCheckinBtn">+ 打卡</button>
+        <button class="btn sm ghost" id="examAddCheckinBtn">+ 打卡</button>
       </div>
-      <div id="pmpCheckinList"></div>
+      <div id="examCheckinList"></div>
       <div class="section-title">
         <h3>📒 知识点</h3>
-        <button class="btn sm ghost" id="pmpAddNoteBtn">+ 知识点</button>
+        <button class="btn sm ghost" id="examAddNoteBtn">+ 知识点</button>
       </div>
-      <div id="pmpNoteList"></div>
+      <div id="examNoteList"></div>
       <div class="section-title">
         <h3>❌ 错题本</h3>
-        <button class="btn sm ghost" id="pmpAddMistakeBtn">+ 错题</button>
+        <button class="btn sm ghost" id="examAddMistakeBtn">+ 错题</button>
       </div>
-      <div id="pmpMistakeList"></div>
+      <div id="examMistakeList"></div>
       <div class="section-title">
         <h3>📊 模拟成绩</h3>
-        <button class="btn sm ghost" id="pmpAddScoreBtn">+ 成绩</button>
+        <button class="btn sm ghost" id="examAddScoreBtn">+ 成绩</button>
       </div>
-      <div id="pmpScoreList"></div>
+      <div id="examScoreList"></div>
     </main>
   </div>
 
@@ -441,82 +442,82 @@
   </div>
 </div>
 
-<!-- 中项：考试日期弹窗 -->
-<div class="mask" id="pmpExamMask">
+<!-- 考试：日期弹窗 -->
+<div class="mask" id="examExamMask">
   <div class="sheet">
     <h2>设置考试日期</h2>
-    <div class="field"><label>考试日期</label><input id="pmpExamDate" type="date"></div>
-    <p style="font-size:12px;color:var(--muted);line-height:1.5;">中项（系统集成项目管理工程师）每年 5 月与 11 月各有一次考试，设置后可看到倒计时。</p>
+    <div class="field"><label>考试日期</label><input id="examExamDate" type="date"></div>
+    <p id="examExamNote" style="font-size:12px;color:var(--muted);line-height:1.5;"></p>
     <div class="sheet-actions">
-      <button class="btn ghost" id="pmpExamCancel">取消</button>
-      <button class="btn" id="pmpExamSave">保存</button>
+      <button class="btn ghost" id="examExamCancel">取消</button>
+      <button class="btn" id="examExamSave">保存</button>
     </div>
   </div>
 </div>
 
-<!-- 中项：打卡弹窗 -->
-<div class="mask" id="pmpCheckinMask">
+<!-- 考试：打卡弹窗 -->
+<div class="mask" id="examCheckinMask">
   <div class="sheet">
     <h2>学习打卡</h2>
     <div class="row2">
-      <div class="field"><label>日期</label><input id="pmpCkDate" type="date"></div>
-      <div class="field"><label>时长(分钟)</label><input id="pmpCkMin" type="number" min="0" placeholder="60"></div>
+      <div class="field"><label>日期</label><input id="examCkDate" type="date"></div>
+      <div class="field"><label>时长(分钟)</label><input id="examCkMin" type="number" min="0" placeholder="60"></div>
     </div>
-    <div class="field"><label>科目</label><select id="pmpCkSubject"></select></div>
-    <div class="field"><label>章节 / 内容</label><input id="pmpCkChapter" placeholder="第4章 项目范围管理"></div>
-    <div class="field"><label>备注</label><textarea id="pmpCkNote" placeholder="学习收获、疑问…"></textarea></div>
+    <div class="field"><label>科目</label><select id="examCkSubject"></select></div>
+    <div class="field"><label>章节 / 内容</label><input id="examCkChapter" placeholder="第4章 项目范围管理"></div>
+    <div class="field"><label>备注</label><textarea id="examCkNote" placeholder="学习收获、疑问…"></textarea></div>
     <div class="sheet-actions">
-      <button class="btn ghost" id="pmpCkCancel">取消</button>
-      <button class="btn" id="pmpCkSave">保存</button>
+      <button class="btn ghost" id="examCkCancel">取消</button>
+      <button class="btn" id="examCkSave">保存</button>
     </div>
   </div>
 </div>
 
-<!-- 中项：知识点弹窗 -->
-<div class="mask" id="pmpNoteMask">
+<!-- 考试：知识点弹窗 -->
+<div class="mask" id="examNoteMask">
   <div class="sheet">
     <h2>知识点</h2>
-    <div class="field"><label>标题 *</label><input id="pmpNtTitle" placeholder="WBS 的定义与作用"></div>
-    <div class="field"><label>科目</label><select id="pmpNtSubject"></select></div>
-    <div class="field"><label>内容 *</label><textarea id="pmpNtContent" placeholder="把容易混的知识点记清楚…"></textarea></div>
+    <div class="field"><label>标题 *</label><input id="examNtTitle" placeholder="WBS 的定义与作用"></div>
+    <div class="field"><label>科目</label><select id="examNtSubject"></select></div>
+    <div class="field"><label>内容 *</label><textarea id="examNtContent" placeholder="把容易混的知识点记清楚…"></textarea></div>
     <div class="sheet-actions">
-      <button class="btn ghost" id="pmpNtCancel">取消</button>
-      <button class="btn" id="pmpNtSave">保存</button>
+      <button class="btn ghost" id="examNtCancel">取消</button>
+      <button class="btn" id="examNtSave">保存</button>
     </div>
   </div>
 </div>
 
-<!-- 中项：错题弹窗 -->
-<div class="mask" id="pmpMistakeMask">
+<!-- 考试：错题弹窗 -->
+<div class="mask" id="examMistakeMask">
   <div class="sheet">
     <h2>错题</h2>
-    <div class="field"><label>题目 *</label><textarea id="pmpMsQuestion" placeholder="题干…"></textarea></div>
-    <div class="field"><label>我的答案</label><textarea id="pmpMsMy" class="ans-my" placeholder="当时选了什么"></textarea></div>
-    <div class="field"><label>正确答案</label><textarea id="pmpMsCorrect" class="ans-ok" placeholder="正确选项与要点"></textarea></div>
-    <div class="field"><label>解析</label><textarea id="pmpMsAnalysis" placeholder="为什么错、对应知识点…"></textarea></div>
-    <div class="field"><label>知识点标签</label><input id="pmpMsTag" placeholder="范围管理"></div>
+    <div class="field"><label>题目 *</label><textarea id="examMsQuestion" placeholder="题干…"></textarea></div>
+    <div class="field"><label>我的答案</label><textarea id="examMsMy" class="ans-my" placeholder="当时选了什么"></textarea></div>
+    <div class="field"><label>正确答案</label><textarea id="examMsCorrect" class="ans-ok" placeholder="正确选项与要点"></textarea></div>
+    <div class="field"><label>解析</label><textarea id="examMsAnalysis" placeholder="为什么错、对应知识点…"></textarea></div>
+    <div class="field"><label>知识点标签</label><input id="examMsTag" placeholder="范围管理"></div>
     <div class="sheet-actions">
-      <button class="btn ghost" id="pmpMsCancel">取消</button>
-      <button class="btn" id="pmpMsSave">保存</button>
+      <button class="btn ghost" id="examMsCancel">取消</button>
+      <button class="btn" id="examMsSave">保存</button>
     </div>
   </div>
 </div>
 
-<!-- 中项：成绩弹窗 -->
-<div class="mask" id="pmpScoreMask">
+<!-- 考试：成绩弹窗 -->
+<div class="mask" id="examScoreMask">
   <div class="sheet">
     <h2>模拟成绩</h2>
     <div class="row2">
-      <div class="field"><label>日期</label><input id="pmpScDate" type="date"></div>
-      <div class="field"><label>分数 *</label><input id="pmpScScore" type="number" min="0" placeholder="58"></div>
+      <div class="field"><label>日期</label><input id="examScDate" type="date"></div>
+      <div class="field"><label>分数 *</label><input id="examScScore" type="number" min="0" placeholder="58"></div>
     </div>
     <div class="row2">
-      <div class="field"><label>科目</label><select id="pmpScSubject"></select></div>
-      <div class="field"><label>满分</label><input id="pmpScTotal" type="number" min="1" value="75" placeholder="75"></div>
+      <div class="field"><label>科目</label><select id="examScSubject"></select></div>
+      <div class="field"><label>满分</label><input id="examScTotal" type="number" min="1" value="75" placeholder="75"></div>
     </div>
     <div class="sheet-actions">
-      <button class="btn ghost" id="pmpScCancel">取消</button>
-      <button class="btn" id="pmpScSave">保存</button>
+      <button class="btn ghost" id="examScCancel">取消</button>
+      <button class="btn" id="examScSave">保存</button>
     </div>
   </div>
 </div>
@@ -562,17 +563,27 @@ const PMP_SUBJECTS = ["信息系统项目管理基础","项目立项管理","项
 const SUB = {
   reading:"个人知识体系 · 阅读",
   en:"个人知识体系 · 英语学习",
-  pmp:"个人知识体系 · 中项备考"
+  pmp:"个人知识体系 · 中项备考",
+  kj:"个人知识体系 · 初级会计"
+};
+const EXAM_DEFS = {
+  pmp:{ name:"中项备考", subjects:PMP_SUBJECTS,
+    examNote:"中项（系统集成项目管理工程师）每年 5 月与 11 月各有一次考试，设置后可看到倒计时。" },
+  kj:{ name:"初级会计", subjects:["初级会计实务","经济法基础"],
+    examNote:"初级会计职称每年 5 月开考（通常 5 月第二个周六），设置后可看到倒计时。" }
 };
 
 let DB = {
   books:[], excerpts:[], reflections:[],
   en:{ checkins:[], vocab:[] },
-  pmp:{ exam:null, checkins:[], notes:[], mistakes:[], scores:[] }
+  exams:{
+    pmp:{ exam:null, checkins:[], notes:[], mistakes:[], scores:[] },
+    kj:{ exam:null, checkins:[], notes:[], mistakes:[], scores:[] }
+  }
 };
 let currentModule = "reading";
 let state = { status:"all", dir:"all", search:"", curBook:null, editingBook:null, rating:0,
-  enType:"all", enSearch:"", pmpSub:"all", pmpSearch:"" };
+  enType:"all", enSearch:"", examSub:"all", examSearch:"" };
 
 /* ---------- 存储 ---------- */
 function load(){
@@ -586,12 +597,20 @@ function load(){
       DB.en = d.en||{checkins:[],vocab:[]};
       DB.en.checkins = DB.en.checkins||[];
       DB.en.vocab = DB.en.vocab||[];
-      DB.pmp = d.pmp||{exam:null,checkins:[],notes:[],mistakes:[],scores:[]};
-      DB.pmp.checkins = DB.pmp.checkins||[];
-      DB.pmp.notes = DB.pmp.notes||[];
-      DB.pmp.mistakes = DB.pmp.mistakes||[];
-      DB.pmp.scores = DB.pmp.scores||[];
-      DB.pmp.exam = DB.pmp.exam||null;
+      DB.exams = d.exams||{pmp:{exam:null,checkins:[],notes:[],mistakes:[],scores:[]},kj:{exam:null,checkins:[],notes:[],mistakes:[],scores:[]}};
+      // 兼容旧结构：旧版把中项数据存在 DB.pmp
+      if(d.pmp){
+        DB.exams.pmp = { exam:d.pmp.exam||null, checkins:d.pmp.checkins||[], notes:d.pmp.notes||[], mistakes:d.pmp.mistakes||[], scores:d.pmp.scores||[] };
+      }
+      DB.exams.pmp = DB.exams.pmp||{exam:null,checkins:[],notes:[],mistakes:[],scores:[]};
+      DB.exams.kj = DB.exams.kj||{exam:null,checkins:[],notes:[],mistakes:[],scores:[]};
+      ["pmp","kj"].forEach(k=>{
+        DB.exams[k].checkins = DB.exams[k].checkins||[];
+        DB.exams[k].notes = DB.exams[k].notes||[];
+        DB.exams[k].mistakes = DB.exams[k].mistakes||[];
+        DB.exams[k].scores = DB.exams[k].scores||[];
+        DB.exams[k].exam = DB.exams[k].exam||null;
+      });
     } else { seed(); save(); }
   }catch(e){ console.warn(e); }
 }
@@ -650,11 +669,15 @@ function switchModule(m){
   document.getElementById("shelfView").classList.toggle("hidden", m!=="reading");
   document.getElementById("detailView").classList.remove("show");
   document.getElementById("enView").classList.toggle("hidden", m!=="en");
-  document.getElementById("pmpView").classList.toggle("hidden", m!=="pmp");
+  document.getElementById("examView").classList.toggle("hidden", !(m==="pmp"||m==="kj"));
   window.scrollTo(0,0);
   if(m==="reading") renderAll();
   else if(m==="en") renderEn();
-  else if(m==="pmp"){ renderPmpCountdown(); renderPmp(); }
+  else if(m==="pmp"||m==="kj"){
+    state.examSub="all"; state.examSearch="";
+    const es=document.getElementById("examSearch"); if(es) es.value="";
+    renderExamCountdown(m); renderExamSubjectsFilter(m); renderExam(m);
+  }
 }
 
 /* ---------- 阅读：书架 ---------- */
@@ -920,72 +943,74 @@ function saveEnVocab(){
   save(); hideMask("enVocabMask"); renderEn(); toast("已添加词条");
 }
 
-/* ---------- 中项备考 ---------- */
-function renderPmpCountdown(){
-  const el=document.getElementById("pmpCountdown");
-  const exam=DB.pmp.exam;
+/* ---------- 考试（中项 / 初级会计通用） ---------- */
+function examData(key){ return DB.exams[key]; }
+function renderExamCountdown(key){
+  const el=document.getElementById("examCountdown");
+  const exam=DB.exams[key].exam;
   if(!exam){
-    el.innerHTML=`<div class="cd-lbl">未设置考试日期</div><button class="btn sm soft" id="pmpEditExam">设置考试日期</button>`;
+    el.innerHTML=`<div class="cd-lbl">未设置考试日期</div><button class="btn sm soft" id="examEditExam">设置考试日期</button>`;
   }else{
     const n=daysBetween(today(),exam);
-    if(n>0) el.innerHTML=`<div class="cd-num">${n}</div><div class="cd-lbl">天后考试（${exam}）</div><button class="btn sm soft" id="pmpEditExam">改日期</button>`;
-    else el.innerHTML=`<div class="cd-past">考试日（${exam}）已到</div><button class="btn sm soft" id="pmpEditExam">改日期</button>`;
+    if(n>0) el.innerHTML=`<div class="cd-num">${n}</div><div class="cd-lbl">天后考试（${exam}）</div><button class="btn sm soft" id="examEditExam">改日期</button>`;
+    else el.innerHTML=`<div class="cd-past">考试日（${exam}）已到</div><button class="btn sm soft" id="examEditExam">改日期</button>`;
   }
-  const b=document.getElementById("pmpEditExam"); if(b) b.onclick=openPmpExam;
+  const b=document.getElementById("examEditExam"); if(b) b.onclick=openExamExam;
 }
-function renderPmpSubjectsFilter(){
-  const subs=[...new Set(DB.pmp.checkins.map(c=>c.subject).filter(Boolean)
-    .concat(DB.pmp.notes.map(n=>n.subject).filter(Boolean)))];
-  let html=`<span class="chip ${state.pmpSub==="all"?"active":""}" data-pmp-sub="all">全部科目</span>`;
-  subs.forEach(s=>{ html+=`<span class="chip ${state.pmpSub===s?"active":""}" data-pmp-sub="${esc(s)}">${esc(s)}</span>`; });
-  document.getElementById("pmpSubFilters").innerHTML=html;
-  document.querySelectorAll("#pmpSubFilters .chip").forEach(c=>{
-    c.onclick=()=>{ state.pmpSub=c.dataset.pmpSub; renderPmpSubjectsFilter(); renderPmp(); };
+function renderExamSubjectsFilter(key){
+  const ex=DB.exams[key];
+  const subs=[...new Set(ex.checkins.map(c=>c.subject).filter(Boolean)
+    .concat(ex.notes.map(n=>n.subject).filter(Boolean)))];
+  let html=`<span class="chip ${state.examSub==="all"?"active":""}" data-exam-sub="all">全部科目</span>`;
+  subs.forEach(s=>{ html+=`<span class="chip ${state.examSub===s?"active":""}" data-exam-sub="${esc(s)}">${esc(s)}</span>`; });
+  document.getElementById("examSubFilters").innerHTML=html;
+  document.querySelectorAll("#examSubFilters .chip").forEach(c=>{
+    c.onclick=()=>{ state.examSub=c.dataset.examSub; renderExamSubjectsFilter(key); renderExam(key); };
   });
 }
-function renderPmp(){
-  const p=DB.pmp;
-  const days=new Set(p.checkins.map(c=>c.date)).size;
-  const total=p.checkins.reduce((s,c)=>s+(+c.minutes||0),0);
-  const lastScore=p.scores.length?p.scores.slice().sort((a,b)=>b.date.localeCompare(a.date))[0]:"";
-  document.getElementById("pmpStats").innerHTML=`
+function renderExam(key){
+  const ex=DB.exams[key];
+  const days=new Set(ex.checkins.map(c=>c.date)).size;
+  const total=ex.checkins.reduce((s,c)=>s+(+c.minutes||0),0);
+  const lastScore=ex.scores.length?ex.scores.slice().sort((a,b)=>b.date.localeCompare(a.date))[0]:"";
+  document.getElementById("examStats").innerHTML=`
     <div class="stat"><div class="num">${days}</div><div class="lbl">打卡天数</div></div>
     <div class="stat reading"><div class="num">${Math.round(total/60)}</div><div class="lbl">总时长(时)</div></div>
-    <div class="stat done"><div class="num">${p.notes.length}</div><div class="lbl">知识点</div></div>
-    <div class="stat want"><div class="num">${p.mistakes.length}</div><div class="lbl">错题</div></div>
+    <div class="stat done"><div class="num">${ex.notes.length}</div><div class="lbl">知识点</div></div>
+    <div class="stat want"><div class="num">${ex.mistakes.length}</div><div class="lbl">错题</div></div>
     <div class="stat"><div class="num">${lastScore?lastScore.score:0}</div><div class="lbl">最近成绩</div></div>`;
 
-  const q=state.pmpSearch.trim().toLowerCase();
-  const sub=state.pmpSub;
+  const q=state.examSearch.trim().toLowerCase();
+  const sub=state.examSub;
 
-  let cs=p.checkins.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  let cs=ex.checkins.slice().sort((a,b)=>b.date.localeCompare(a.date));
   if(sub!=="all") cs=cs.filter(c=>c.subject===sub);
   if(q) cs=cs.filter(c=>(c.chapter||"").toLowerCase().includes(q)||(c.note||"").toLowerCase().includes(q)||(c.subject||"").toLowerCase().includes(q));
-  document.getElementById("pmpCheckinList").innerHTML = cs.length? cs.map(c=>`
+  document.getElementById("examCheckinList").innerHTML = cs.length? cs.map(c=>`
     <div class="entry">
-      <button class="del" data-type="pmpCk" data-id="${c.id}">删除</button>
+      <button class="del" data-type="examCk" data-id="${c.id}">删除</button>
       <div class="ehead"><span>${esc(c.date)}</span><span class="sub-tag">${esc(c.subject)}</span><span class="page">${c.minutes||0} 分钟</span></div>
       ${c.chapter?`<div class="content">${esc(c.chapter)}</div>`:""}
       ${c.note?`<div class="content" style="color:var(--muted);font-size:13px;margin-top:4px">${esc(c.note)}</div>`:""}
     </div>`).join("") : `<div class="empty" style="padding:24px">还没有打卡</div>`;
 
-  let ns=p.notes.slice().sort((a,b)=>b.createdAt-a.createdAt);
+  let ns=ex.notes.slice().sort((a,b)=>b.createdAt-a.createdAt);
   if(sub!=="all") ns=ns.filter(n=>n.subject===sub);
   if(q) ns=ns.filter(n=>(n.title||"").toLowerCase().includes(q)||(n.content||"").toLowerCase().includes(q));
-  document.getElementById("pmpNoteList").innerHTML = ns.length? ns.map(n=>`
+  document.getElementById("examNoteList").innerHTML = ns.length? ns.map(n=>`
     <div class="entry">
-      <button class="del" data-type="pmpNt" data-id="${n.id}">删除</button>
+      <button class="del" data-type="examNt" data-id="${n.id}">删除</button>
       <div class="ehead"><span class="sub-tag b">${esc(n.subject)}</span></div>
       <div class="content"><b>${esc(n.title)}</b></div>
       <div class="content" style="color:#55606e;font-size:14px;margin-top:4px;white-space:pre-wrap">${esc(n.content)}</div>
     </div>`).join("") : `<div class="empty" style="padding:24px">还没有知识点</div>`;
 
-  let ms=p.mistakes.slice().sort((a,b)=>b.createdAt-a.createdAt);
+  let ms=ex.mistakes.slice().sort((a,b)=>b.createdAt-a.createdAt);
   if(sub!=="all") ms=ms.filter(m=>m.tag===sub);
   if(q) ms=ms.filter(m=>(m.question||"").toLowerCase().includes(q)||(m.analysis||"").toLowerCase().includes(q)||(m.tag||"").toLowerCase().includes(q));
-  document.getElementById("pmpMistakeList").innerHTML = ms.length? ms.map(m=>`
+  document.getElementById("examMistakeList").innerHTML = ms.length? ms.map(m=>`
     <div class="entry">
-      <button class="del" data-type="pmpMs" data-id="${m.id}">删除</button>
+      <button class="del" data-type="examMs" data-id="${m.id}">删除</button>
       <div class="ehead"><span class="sub-tag">${esc(m.tag||"错题")}</span></div>
       <div class="content"><b>题：</b>${esc(m.question)}</div>
       ${m.my?`<div class="content ans-my" style="margin-top:4px"><b>我的：</b>${esc(m.my)}</div>`:""}
@@ -993,111 +1018,114 @@ function renderPmp(){
       ${m.analysis?`<div class="content" style="color:#55606e;font-size:13px;margin-top:4px"><b>解析：</b>${esc(m.analysis)}</div>`:""}
     </div>`).join("") : `<div class="empty" style="padding:24px">错题本还是空的</div>`;
 
-  let sc=p.scores.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  let sc=ex.scores.slice().sort((a,b)=>b.date.localeCompare(a.date));
   if(sub!=="all") sc=sc.filter(s=>s.subject===sub);
   if(q) sc=sc.filter(s=>(s.subject||"").toLowerCase().includes(q));
-  document.getElementById("pmpScoreList").innerHTML = sc.length? sc.map(s=>{
+  document.getElementById("examScoreList").innerHTML = sc.length? sc.map(s=>{
     const total=s.total||75; const pct=Math.round(s.score/total*100);
     return `<div class="entry">
-      <button class="del" data-type="pmpSc" data-id="${s.id}">删除</button>
+      <button class="del" data-type="examSc" data-id="${s.id}">删除</button>
       <div class="ehead"><span>${esc(s.date)}</span><span class="sub-tag">${esc(s.subject)}</span><span class="page">${s.score}/${total}（${pct}%）</span></div>
     </div>`;
   }).join("") : `<div class="empty" style="padding:24px">还没有成绩记录</div>`;
 
-  document.querySelectorAll("#pmpView .del").forEach(btn=>{
+  document.querySelectorAll("#examView .del").forEach(btn=>{
     btn.onclick=()=>{
       const {type,id:eid}=btn.dataset;
+      const ex=DB.exams[key];
       if(confirm("删除这条记录？")){
-        if(type==="pmpCk") DB.pmp.checkins=DB.pmp.checkins.filter(x=>x.id!==eid);
-        else if(type==="pmpNt") DB.pmp.notes=DB.pmp.notes.filter(x=>x.id!==eid);
-        else if(type==="pmpMs") DB.pmp.mistakes=DB.pmp.mistakes.filter(x=>x.id!==eid);
-        else if(type==="pmpSc") DB.pmp.scores=DB.pmp.scores.filter(x=>x.id!==eid);
-        save(); renderPmp(); toast("已删除");
+        if(type==="examCk") ex.checkins=ex.checkins.filter(x=>x.id!==eid);
+        else if(type==="examNt") ex.notes=ex.notes.filter(x=>x.id!==eid);
+        else if(type==="examMs") ex.mistakes=ex.mistakes.filter(x=>x.id!==eid);
+        else if(type==="examSc") ex.scores=ex.scores.filter(x=>x.id!==eid);
+        save(); renderExam(key); toast("已删除");
       }
     };
   });
 }
-function fillPmpSubjectSelect(selId){
-  document.getElementById(selId).innerHTML = PMP_SUBJECTS.map(s=>`<option>${s}</option>`).join("");
+function fillExamSubjectSelect(key, selId){
+  document.getElementById(selId).innerHTML = EXAM_DEFS[key].subjects.map(s=>`<option>${s}</option>`).join("");
 }
-function openPmpExam(){
-  document.getElementById("pmpExamDate").value=DB.pmp.exam||"";
-  showMask("pmpExamMask");
+function openExamExam(){
+  const def=EXAM_DEFS[currentModule];
+  document.getElementById("examExamDate").value=DB.exams[currentModule].exam||"";
+  document.getElementById("examExamNote").textContent=def.examNote||"";
+  showMask("examExamMask");
 }
-function savePmpExam(){
-  DB.pmp.exam=document.getElementById("pmpExamDate").value||null;
-  save(); hideMask("pmpExamMask"); renderPmpCountdown(); toast(DB.pmp.exam?"已设置":"已清除");
+function saveExamExam(){
+  DB.exams[currentModule].exam=document.getElementById("examExamDate").value||null;
+  save(); hideMask("examExamMask"); renderExamCountdown(currentModule); toast(DB.exams[currentModule].exam?"已设置":"已清除");
 }
-function openPmpCheckin(){
-  document.getElementById("pmpCkDate").value=today();
-  document.getElementById("pmpCkMin").value="";
-  document.getElementById("pmpCkChapter").value="";
-  document.getElementById("pmpCkNote").value="";
-  fillPmpSubjectSelect("pmpCkSubject");
-  showMask("pmpCheckinMask");
+function openExamCheckin(){
+  document.getElementById("examCkDate").value=today();
+  document.getElementById("examCkMin").value="";
+  document.getElementById("examCkChapter").value="";
+  document.getElementById("examCkNote").value="";
+  fillExamSubjectSelect(currentModule,"examCkSubject");
+  showMask("examCheckinMask");
 }
-function savePmpCheckin(){
-  DB.pmp.checkins.push({
-    id:uid(), date:document.getElementById("pmpCkDate").value||today(),
-    subject:document.getElementById("pmpCkSubject").value,
-    chapter:document.getElementById("pmpCkChapter").value.trim(),
-    minutes:parseInt(document.getElementById("pmpCkMin").value||"0",10)||0,
-    note:document.getElementById("pmpCkNote").value.trim(), createdAt:Date.now()
+function saveExamCheckin(){
+  DB.exams[currentModule].checkins.push({
+    id:uid(), date:document.getElementById("examCkDate").value||today(),
+    subject:document.getElementById("examCkSubject").value,
+    chapter:document.getElementById("examCkChapter").value.trim(),
+    minutes:parseInt(document.getElementById("examCkMin").value||"0",10)||0,
+    note:document.getElementById("examCkNote").value.trim(), createdAt:Date.now()
   });
-  save(); hideMask("pmpCheckinMask"); renderPmpSubjectsFilter(); renderPmp(); toast("已打卡");
+  save(); hideMask("examCheckinMask"); renderExamSubjectsFilter(currentModule); renderExam(currentModule); toast("已打卡");
 }
-function openPmpNote(){
-  document.getElementById("pmpNtTitle").value="";
-  document.getElementById("pmpNtContent").value="";
-  fillPmpSubjectSelect("pmpNtSubject");
-  showMask("pmpNoteMask");
+function openExamNote(){
+  document.getElementById("examNtTitle").value="";
+  document.getElementById("examNtContent").value="";
+  fillExamSubjectSelect(currentModule,"examNtSubject");
+  showMask("examNoteMask");
 }
-function savePmpNote(){
-  const title=document.getElementById("pmpNtTitle").value.trim();
+function saveExamNote(){
+  const title=document.getElementById("examNtTitle").value.trim();
   if(!title){ toast("请填写标题"); return; }
-  DB.pmp.notes.push({
+  DB.exams[currentModule].notes.push({
     id:uid(), title,
-    subject:document.getElementById("pmpNtSubject").value,
-    content:document.getElementById("pmpNtContent").value.trim(), createdAt:Date.now()
+    subject:document.getElementById("examNtSubject").value,
+    content:document.getElementById("examNtContent").value.trim(), createdAt:Date.now()
   });
-  save(); hideMask("pmpNoteMask"); renderPmpSubjectsFilter(); renderPmp(); toast("已保存");
+  save(); hideMask("examNoteMask"); renderExamSubjectsFilter(currentModule); renderExam(currentModule); toast("已保存");
 }
-function openPmpMistake(){
-  document.getElementById("pmpMsQuestion").value="";
-  document.getElementById("pmpMsMy").value="";
-  document.getElementById("pmpMsCorrect").value="";
-  document.getElementById("pmpMsAnalysis").value="";
-  document.getElementById("pmpMsTag").value="";
-  showMask("pmpMistakeMask");
+function openExamMistake(){
+  document.getElementById("examMsQuestion").value="";
+  document.getElementById("examMsMy").value="";
+  document.getElementById("examMsCorrect").value="";
+  document.getElementById("examMsAnalysis").value="";
+  document.getElementById("examMsTag").value="";
+  showMask("examMistakeMask");
 }
-function savePmpMistake(){
-  const q=document.getElementById("pmpMsQuestion").value.trim();
+function saveExamMistake(){
+  const q=document.getElementById("examMsQuestion").value.trim();
   if(!q){ toast("请填写题目"); return; }
-  DB.pmp.mistakes.push({
+  DB.exams[currentModule].mistakes.push({
     id:uid(), question:q,
-    my:document.getElementById("pmpMsMy").value.trim(),
-    correct:document.getElementById("pmpMsCorrect").value.trim(),
-    analysis:document.getElementById("pmpMsAnalysis").value.trim(),
-    tag:document.getElementById("pmpMsTag").value.trim(), createdAt:Date.now()
+    my:document.getElementById("examMsMy").value.trim(),
+    correct:document.getElementById("examMsCorrect").value.trim(),
+    analysis:document.getElementById("examMsAnalysis").value.trim(),
+    tag:document.getElementById("examMsTag").value.trim(), createdAt:Date.now()
   });
-  save(); hideMask("pmpMistakeMask"); renderPmp(); toast("已添加错题");
+  save(); hideMask("examMistakeMask"); renderExam(currentModule); toast("已添加错题");
 }
-function openPmpScore(){
-  document.getElementById("pmpScDate").value=today();
-  document.getElementById("pmpScScore").value="";
-  document.getElementById("pmpScTotal").value="75";
-  fillPmpSubjectSelect("pmpScSubject");
-  showMask("pmpScoreMask");
+function openExamScore(){
+  document.getElementById("examScDate").value=today();
+  document.getElementById("examScScore").value="";
+  document.getElementById("examScTotal").value="75";
+  fillExamSubjectSelect(currentModule,"examScSubject");
+  showMask("examScoreMask");
 }
-function savePmpScore(){
-  const score=parseInt(document.getElementById("pmpScScore").value||"0",10);
+function saveExamScore(){
+  const score=parseInt(document.getElementById("examScScore").value||"0",10);
   if(!score && score!==0){ toast("请填写分数"); return; }
-  DB.pmp.scores.push({
-    id:uid(), date:document.getElementById("pmpScDate").value||today(),
-    score, subject:document.getElementById("pmpScSubject").value,
-    total:parseInt(document.getElementById("pmpScTotal").value||"75",10)||75, createdAt:Date.now()
+  DB.exams[currentModule].scores.push({
+    id:uid(), date:document.getElementById("examScDate").value||today(),
+    score, subject:document.getElementById("examScSubject").value,
+    total:parseInt(document.getElementById("examScTotal").value||"75",10)||75, createdAt:Date.now()
   });
-  save(); hideMask("pmpScoreMask"); renderPmp(); toast("已记录");
+  save(); hideMask("examScoreMask"); renderExam(currentModule); toast("已记录");
 }
 
 /* ---------- 通用添加选择 ---------- */
@@ -1131,12 +1159,17 @@ function importJSON(file){
       DB.excerpts=[...DB.excerpts,...(data.excerpts||[])];
       DB.reflections=[...DB.reflections,...(data.reflections||[])];
       const en=data.en||{}; DB.en.checkins=[...DB.en.checkins,...(en.checkins||[])]; DB.en.vocab=[...DB.en.vocab,...(en.vocab||[])];
-      const pmp=data.pmp||{};
-      DB.pmp.checkins=[...DB.pmp.checkins,...(pmp.checkins||[])];
-      DB.pmp.notes=[...DB.pmp.notes,...(pmp.notes||[])];
-      DB.pmp.mistakes=[...DB.pmp.mistakes,...(pmp.mistakes||[])];
-      DB.pmp.scores=[...DB.pmp.scores,...(pmp.scores||[])];
-      if(pmp.exam) DB.pmp.exam=pmp.exam;
+      const exams=data.exams||{};
+      const oldPmp=data.pmp||{};
+      ["pmp","kj"].forEach(k=>{
+        const src=exams[k]||{};
+        const merge=(oldPmp && k==="pmp") ? Object.assign({},src,oldPmp) : src;
+        DB.exams[k].checkins=[...DB.exams[k].checkins,...(merge.checkins||[])];
+        DB.exams[k].notes=[...DB.exams[k].notes,...(merge.notes||[])];
+        DB.exams[k].mistakes=[...DB.exams[k].mistakes,...(merge.mistakes||[])];
+        DB.exams[k].scores=[...DB.exams[k].scores,...(merge.scores||[])];
+        if(merge.exam) DB.exams[k].exam=merge.exam;
+      });
       save(); renderAll(); switchModule(currentModule); hideMask("dataMask"); toast("导入完成");
     }catch(e){ toast("文件格式错误"); }
   };
@@ -1164,12 +1197,12 @@ function bind(){
         {label:"✅ 学习打卡", onClick:openEnCheckin},
         {label:"📘 词条积累", onClick:openEnVocab}
       ]);
-    } else if(currentModule==="pmp"){
-      openAddPicker("中项备考 · 添加",[
-        {label:"✅ 学习打卡", onClick:openPmpCheckin},
-        {label:"📒 知识点", onClick:openPmpNote},
-        {label:"❌ 错题", onClick:openPmpMistake},
-        {label:"📊 模拟成绩", onClick:openPmpScore}
+    } else if(currentModule==="pmp"||currentModule==="kj"){
+      openAddPicker(EXAM_DEFS[currentModule].name+" · 添加",[
+        {label:"✅ 学习打卡", onClick:openExamCheckin},
+        {label:"📒 知识点", onClick:openExamNote},
+        {label:"❌ 错题", onClick:openExamMistake},
+        {label:"📊 模拟成绩", onClick:openExamScore}
       ]);
     }
   };
@@ -1216,23 +1249,23 @@ function bind(){
     clearTimeout(est); est=setTimeout(()=>{ state.enSearch=e.target.value; renderEn(); },200);
   };
 
-  // 中项
-  document.getElementById("pmpAddCheckinBtn").onclick=openPmpCheckin;
-  document.getElementById("pmpAddNoteBtn").onclick=openPmpNote;
-  document.getElementById("pmpAddMistakeBtn").onclick=openPmpMistake;
-  document.getElementById("pmpAddScoreBtn").onclick=openPmpScore;
-  document.getElementById("pmpExamCancel").onclick=()=>hideMask("pmpExamMask");
-  document.getElementById("pmpExamSave").onclick=savePmpExam;
-  document.getElementById("pmpCkCancel").onclick=()=>hideMask("pmpCheckinMask");
-  document.getElementById("pmpCkSave").onclick=savePmpCheckin;
-  document.getElementById("pmpNtCancel").onclick=()=>hideMask("pmpNoteMask");
-  document.getElementById("pmpNtSave").onclick=savePmpNote;
-  document.getElementById("pmpMsCancel").onclick=()=>hideMask("pmpMistakeMask");
-  document.getElementById("pmpMsSave").onclick=savePmpMistake;
-  document.getElementById("pmpScCancel").onclick=()=>hideMask("pmpScoreMask");
-  document.getElementById("pmpScSave").onclick=savePmpScore;
-  let pst; document.getElementById("pmpSearch").oninput=e=>{
-    clearTimeout(pst); pst=setTimeout(()=>{ state.pmpSearch=e.target.value; renderPmp(); },200);
+  // 考试（中项 / 初级会计通用）
+  document.getElementById("examAddCheckinBtn").onclick=openExamCheckin;
+  document.getElementById("examAddNoteBtn").onclick=openExamNote;
+  document.getElementById("examAddMistakeBtn").onclick=openExamMistake;
+  document.getElementById("examAddScoreBtn").onclick=openExamScore;
+  document.getElementById("examExamCancel").onclick=()=>hideMask("examExamMask");
+  document.getElementById("examExamSave").onclick=saveExamExam;
+  document.getElementById("examCkCancel").onclick=()=>hideMask("examCheckinMask");
+  document.getElementById("examCkSave").onclick=saveExamCheckin;
+  document.getElementById("examNtCancel").onclick=()=>hideMask("examNoteMask");
+  document.getElementById("examNtSave").onclick=saveExamNote;
+  document.getElementById("examMsCancel").onclick=()=>hideMask("examMistakeMask");
+  document.getElementById("examMsSave").onclick=saveExamMistake;
+  document.getElementById("examScCancel").onclick=()=>hideMask("examScoreMask");
+  document.getElementById("examScSave").onclick=saveExamScore;
+  let pst; document.getElementById("examSearch").oninput=e=>{
+    clearTimeout(pst); pst=setTimeout(()=>{ state.examSearch=e.target.value; renderExam(currentModule); },200);
   };
 
   // 底部导航
@@ -1243,7 +1276,8 @@ function bind(){
       document.getElementById("dataStats").innerHTML=
         `阅读：${DB.books.length} 本 · ${DB.excerpts.length} 书摘 · ${DB.reflections.length} 感想<br>`+
         `英语：${DB.en.checkins.length} 打卡 · ${DB.en.vocab.length} 词条<br>`+
-        `中项：${DB.pmp.checkins.length} 打卡 · ${DB.pmp.notes.length} 知识点 · ${DB.pmp.mistakes.length} 错题 · ${DB.pmp.scores.length} 成绩`;
+        `中项备考：${DB.exams.pmp.checkins.length} 打卡 · ${DB.exams.pmp.notes.length} 知识点 · ${DB.exams.pmp.mistakes.length} 错题 · ${DB.exams.pmp.scores.length} 成绩<br>`+
+        `初级会计：${DB.exams.kj.checkins.length} 打卡 · ${DB.exams.kj.notes.length} 知识点 · ${DB.exams.kj.mistakes.length} 错题 · ${DB.exams.kj.scores.length} 成绩`;
       showMask("dataMask");
       document.querySelectorAll("nav .tab")[0].classList.add("active");
       t.classList.remove("active");
@@ -1258,8 +1292,8 @@ function bind(){
   document.getElementById("addPickCancel").onclick=()=>hideMask("addPickMask");
 
   // 点击遮罩空白处关闭
-  ["bookMask","excerptMask","refMask","enCheckinMask","enVocabMask","pmpExamMask",
-   "pmpCheckinMask","pmpNoteMask","pmpMistakeMask","pmpScoreMask","dataMask","addPickMask"].forEach(id=>{
+  ["bookMask","excerptMask","refMask","enCheckinMask","enVocabMask","examExamMask",
+   "examCheckinMask","examNoteMask","examMistakeMask","examScoreMask","dataMask","addPickMask"].forEach(id=>{
     document.getElementById(id).onclick=e=>{ if(e.target.id===id) hideMask(id); };
   });
 }
