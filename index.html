@@ -158,6 +158,8 @@
   .seg{display:flex;gap:8px;flex-wrap:wrap;}
   .seg .opt{flex:1;text-align:center;padding:9px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:14px;color:var(--muted);min-width:54px;}
   .seg .opt.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;}
+  .seg.mk .opt{color:var(--mc,#888780);}
+  .seg.mk .opt.active{background:var(--mc);color:#fff;border-color:var(--mc);font-weight:600;}
   .star-pick{font-size:26px;letter-spacing:4px;cursor:pointer;}
   .star-pick span{color:var(--line);}
   .star-pick span.on{color:var(--accent);}
@@ -232,6 +234,7 @@
         <h3>📖 书摘</h3>
         <button class="btn sm ghost" id="addExcerptBtn">+ 书摘</button>
       </div>
+      <div class="filters" id="exMarkFilters"></div>
       <div id="excerptList"></div>
 
       <div class="section-title">
@@ -374,6 +377,11 @@
     <h2>添加书摘</h2>
     <div class="field"><label>页码 / 章节</label><input id="exPage" placeholder="P.42 或 第三章"></div>
     <div class="field"><label>内容 *</label><textarea id="exContent" placeholder="抄录打动你的句子…"></textarea></div>
+    <div class="field">
+      <label>三色标记</label>
+      <div class="seg mk" id="exMark"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">🔴重点 · 🔵疑问 · 🟢感悟（不标也可）</div>
+    </div>
     <div class="field"><label>标签（逗号分隔）</label><input id="exTags" placeholder="隐喻, 权力"></div>
     <div class="sheet-actions">
       <button class="btn ghost" id="exCancel">取消</button>
@@ -397,6 +405,11 @@
       </div>
     </div>
     <div class="field"><label>内容 *</label><textarea id="rfContent" placeholder="读完这段时的想法、联想、疑问…"></textarea></div>
+    <div class="field">
+      <label>三色标记</label>
+      <div class="seg mk" id="rfMark"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">🔴重点 · 🔵疑问 · 🟢感悟（不标也可）</div>
+    </div>
     <div class="sheet-actions">
       <button class="btn ghost" id="rfCancel">取消</button>
       <button class="btn" id="rfSave">保存</button>
@@ -484,6 +497,11 @@
     <div class="field"><label>标题 *</label><input id="examNtTitle" placeholder="WBS 的定义与作用"></div>
     <div class="field"><label>科目</label><select id="examNtSubject"></select></div>
     <div class="field"><label>内容 *</label><textarea id="examNtContent" placeholder="把容易混的知识点记清楚…"></textarea></div>
+    <div class="field">
+      <label>掌握度（三色）</label>
+      <div class="seg mk" id="examNtMark"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">🔴薄弱 · 🔵复习中 · 🟢已掌握</div>
+    </div>
     <div class="sheet-actions">
       <button class="btn ghost" id="examNtCancel">取消</button>
       <button class="btn" id="examNtSave">保存</button>
@@ -500,6 +518,11 @@
     <div class="field"><label>正确答案</label><textarea id="examMsCorrect" class="ans-ok" placeholder="正确选项与要点"></textarea></div>
     <div class="field"><label>解析</label><textarea id="examMsAnalysis" placeholder="为什么错、对应知识点…"></textarea></div>
     <div class="field"><label>知识点标签</label><input id="examMsTag" placeholder="范围管理"></div>
+    <div class="field">
+      <label>掌握度（三色）</label>
+      <div class="seg mk" id="examMsMark"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">🔴薄弱 · 🔵复习中 · 🟢已掌握</div>
+    </div>
     <div class="sheet-actions">
       <button class="btn ghost" id="examMsCancel">取消</button>
       <button class="btn" id="examMsSave">保存</button>
@@ -587,7 +610,7 @@ let DB = {
 };
 let currentModule = "reading";
 let state = { status:"all", dir:"all", search:"", curBook:null, editingBook:null, rating:0,
-  bkAutoAuthor:"", bkAutoDir:"", editing:null,
+  bkAutoAuthor:"", bkAutoDir:"", editing:null, exMark:"all",
   enType:"all", enSearch:"", examSub:"all", examSearch:"" };
 
 /* ---------- 存储 ---------- */
@@ -1335,21 +1358,23 @@ function openDetail(id){
 function renderEntries(){
   const id=state.curBook;
   const exs=DB.excerpts.filter(e=>e.bookId===id).sort((a,b)=>a.createdAt-b.createdAt);
-  document.getElementById("excerptList").innerHTML = exs.length? exs.map(e=>`
-    <div class="entry">
+  renderExMarkFilters(exs);
+  const fex = state.exMark==="all" ? exs : exs.filter(e=>e.mark===state.exMark);
+  document.getElementById("excerptList").innerHTML = fex.length? fex.map(e=>`
+    <div class="entry" style="${markLeft(e.mark)}">
       <button class="edit" data-type="ex" data-id="${e.id}">编辑</button>
       <button class="del" data-type="ex" data-id="${e.id}">删除</button>
-      <div class="ehead"><span class="page">${esc(e.page||"书摘")}</span></div>
+      <div class="ehead"><span class="page">${esc(e.page||"书摘")}</span>${markTagSpan(e.mark)}</div>
       <div class="content">${esc(e.content)}</div>
       ${e.tags?`<div class="etags">${tagsHtml(e.tags)}</div>`:""}
-    </div>`).join("") : `<div class="empty" style="padding:24px">还没有书摘</div>`;
+    </div>`).join("") : `<div class="empty" style="padding:24px">${exs.length? "没有这类标记的书摘" : "还没有书摘"}</div>`;
 
   const rfs=DB.reflections.filter(r=>r.bookId===id).sort((a,b)=>a.createdAt-b.createdAt);
   document.getElementById("reflectionList").innerHTML = rfs.length? rfs.map(r=>`
-    <div class="entry">
+    <div class="entry" style="${markLeft(r.mark)}">
       <button class="edit" data-type="rf" data-id="${r.id}">编辑</button>
       <button class="del" data-type="rf" data-id="${r.id}">删除</button>
-      <div class="ehead"><span>${esc(r.date||"")}</span>${r.mood?`<span class="mood">${esc(r.mood)}</span>`:""}</div>
+      <div class="ehead"><span>${esc(r.date||"")}</span>${r.mood?`<span class="mood">${esc(r.mood)}</span>`:""}${markTagSpan(r.mark)?"　"+markTagSpan(r.mark):""}</div>
       <div class="content">${esc(r.content)}</div>
     </div>`).join("") : `<div class="empty" style="padding:24px">还没有感想</div>`;
 
@@ -1432,6 +1457,49 @@ function bindEntryEdit(scope){
   });
 }
 
+/* ---------- 三色标记法 ---------- */
+/* 阅读：内容意图三色；考试：掌握度三色。颜色语义统一：红=重点/薄弱，蓝=疑问/复习中，绿=感悟/已掌握 */
+const MARKS = {
+  key:      {label:"重点",   color:"#E24B4A"},
+  doubt:    {label:"疑问",   color:"#378ADD"},
+  insight:  {label:"感悟",   color:"#639922"},
+  weak:     {label:"薄弱",   color:"#E24B4A"},
+  reviewing:{label:"复习中", color:"#378ADD"},
+  mastered: {label:"已掌握", color:"#639922"}
+};
+function renderMarkSeg(id, keys, current){
+  const order=[""].concat(keys);
+  document.getElementById(id).innerHTML = order.map(k=>{
+    const mc = k ? MARKS[k].color : "#888780";
+    const lab = k ? MARKS[k].label : "无";
+    const act = (k||"")===current ? " active" : "";
+    return `<div class="opt${act}" data-mark="${k}" style="--mc:${mc}">${lab}</div>`;
+  }).join("");
+  document.querySelectorAll("#"+id+" .opt").forEach(o=>{
+    o.onclick=()=>{
+      document.querySelectorAll("#"+id+" .opt").forEach(x=>x.classList.remove("active"));
+      o.classList.add("active");
+    };
+  });
+}
+function getMark(id){ const a=document.querySelector("#"+id+" .opt.active"); return a ? a.dataset.mark : ""; }
+function markLeft(mark){ return mark && MARKS[mark] ? `border-left:4px solid ${MARKS[mark].color};` : ""; }
+function markTagSpan(mark){ return mark && MARKS[mark] ? `<span style="color:${MARKS[mark].color};font-size:12px;font-weight:500;">${MARKS[mark].label}</span>` : ""; }
+function renderExMarkFilters(exs){
+  const counts={all:exs.length, key:0, doubt:0, insight:0};
+  exs.forEach(e=>{ if(e.mark && counts[e.mark]!==undefined) counts[e.mark]++; });
+  const keys=["all","key","doubt","insight"];
+  document.getElementById("exMarkFilters").innerHTML = keys.map(k=>{
+    const label = k==="all" ? "全部" : MARKS[k].label;
+    const col = k==="all" ? "" : `style="color:${MARKS[k].color}"`;
+    const act = state.exMark===k ? " active" : "";
+    return `<span class="chip${act}" data-exmark="${k}" ${col}>${label} ${counts[k]}</span>`;
+  }).join("");
+  document.querySelectorAll("#exMarkFilters .chip").forEach(c=>{
+    c.onclick=()=>{ state.exMark=c.dataset.exmark; renderEntries(); };
+  });
+}
+
 /* ---------- 阅读：书摘 / 感想 ---------- */
 function openExcerptSheet(id){
   id = normRecId(id);
@@ -1441,6 +1509,7 @@ function openExcerptSheet(id){
   document.getElementById("exPage").value = e ? (e.page||"") : "";
   document.getElementById("exContent").value = e ? (e.content||"") : "";
   document.getElementById("exTags").value = e ? (e.tags||"") : "";
+  renderMarkSeg("exMark", ["key","doubt","insight"], e ? (e.mark||"") : "");
   showMask("excerptMask");
 }
 function saveExcerpt(){
@@ -1449,7 +1518,8 @@ function saveExcerpt(){
   const data={
     page: document.getElementById("exPage").value.trim(),
     content,
-    tags: document.getElementById("exTags").value.trim()
+    tags: document.getElementById("exTags").value.trim(),
+    mark: getMark("exMark")
   };
   const editing = state.editing && state.editing.kind==="ex" ? state.editing.id : null;
   if(editing){
@@ -1470,6 +1540,7 @@ function openReflectionSheet(id){
   document.getElementById("rfDate").value = r ? (r.date||today()) : today();
   document.getElementById("rfMood").value = r ? (r.mood||"") : "";
   document.getElementById("rfContent").value = r ? (r.content||"") : "";
+  renderMarkSeg("rfMark", ["key","doubt","insight"], r ? (r.mark||"") : "");
   showMask("refMask");
 }
 function saveReflection(){
@@ -1478,7 +1549,8 @@ function saveReflection(){
   const data={
     date: document.getElementById("rfDate").value||today(),
     mood: document.getElementById("rfMood").value,
-    content
+    content,
+    mark: getMark("rfMark")
   };
   const editing = state.editing && state.editing.kind==="rf" ? state.editing.id : null;
   if(editing){
@@ -1656,10 +1728,10 @@ function renderExam(key){
   if(sub!=="all") ns=ns.filter(n=>n.subject===sub);
   if(q) ns=ns.filter(n=>(n.title||"").toLowerCase().includes(q)||(n.content||"").toLowerCase().includes(q));
   document.getElementById("examNoteList").innerHTML = ns.length? ns.map(n=>`
-    <div class="entry">
+    <div class="entry" style="${markLeft(n.mark)}">
       <button class="edit" data-type="examNt" data-id="${n.id}">编辑</button>
       <button class="del" data-type="examNt" data-id="${n.id}">删除</button>
-      <div class="ehead"><span class="sub-tag b">${esc(n.subject)}</span></div>
+      <div class="ehead"><span class="sub-tag b">${esc(n.subject)}</span>${markTagSpan(n.mark)}</div>
       <div class="content"><b>${esc(n.title)}</b></div>
       <div class="content" style="color:#55606e;font-size:14px;margin-top:4px;white-space:pre-wrap">${esc(n.content)}</div>
     </div>`).join("") : `<div class="empty" style="padding:24px">还没有知识点</div>`;
@@ -1668,10 +1740,10 @@ function renderExam(key){
   if(sub!=="all") ms=ms.filter(m=>m.tag===sub);
   if(q) ms=ms.filter(m=>(m.question||"").toLowerCase().includes(q)||(m.analysis||"").toLowerCase().includes(q)||(m.tag||"").toLowerCase().includes(q));
   document.getElementById("examMistakeList").innerHTML = ms.length? ms.map(m=>`
-    <div class="entry">
+    <div class="entry" style="${markLeft(m.mark)}">
       <button class="edit" data-type="examMs" data-id="${m.id}">编辑</button>
       <button class="del" data-type="examMs" data-id="${m.id}">删除</button>
-      <div class="ehead"><span class="sub-tag">${esc(m.tag||"错题")}</span></div>
+      <div class="ehead"><span class="sub-tag">${esc(m.tag||"错题")}</span>${markTagSpan(m.mark)}</div>
       <div class="content"><b>题：</b>${esc(m.question)}</div>
       ${m.my?`<div class="content ans-my" style="margin-top:4px"><b>我的：</b>${esc(m.my)}</div>`:""}
       ${m.correct?`<div class="content ans-ok" style="margin-top:4px"><b>正确：</b>${esc(m.correct)}</div>`:""}
@@ -1759,6 +1831,7 @@ function openExamNote(id){
   document.getElementById("examNtTitle").value = n ? (n.title||"") : "";
   document.getElementById("examNtContent").value = n ? (n.content||"") : "";
   if(n && n.subject) document.getElementById("examNtSubject").value = n.subject;
+  renderMarkSeg("examNtMark", ["weak","reviewing","mastered"], n ? (n.mark||"") : "");
   showMask("examNoteMask");
 }
 function saveExamNote(){
@@ -1767,7 +1840,8 @@ function saveExamNote(){
   const data={
     title,
     subject:document.getElementById("examNtSubject").value,
-    content:document.getElementById("examNtContent").value.trim()
+    content:document.getElementById("examNtContent").value.trim(),
+    mark: getMark("examNtMark")
   };
   const editing = state.editing && state.editing.kind==="examNt" ? state.editing.id : null;
   if(editing){
@@ -1790,6 +1864,7 @@ function openExamMistake(id){
   document.getElementById("examMsCorrect").value = m ? (m.correct||"") : "";
   document.getElementById("examMsAnalysis").value = m ? (m.analysis||"") : "";
   document.getElementById("examMsTag").value = m ? (m.tag||"") : "";
+  renderMarkSeg("examMsMark", ["weak","reviewing","mastered"], m ? (m.mark||"") : "");
   showMask("examMistakeMask");
 }
 function saveExamMistake(){
@@ -1800,7 +1875,8 @@ function saveExamMistake(){
     my:document.getElementById("examMsMy").value.trim(),
     correct:document.getElementById("examMsCorrect").value.trim(),
     analysis:document.getElementById("examMsAnalysis").value.trim(),
-    tag:document.getElementById("examMsTag").value.trim()
+    tag:document.getElementById("examMsTag").value.trim(),
+    mark: getMark("examMsMark")
   };
   const editing = state.editing && state.editing.kind==="examMs" ? state.editing.id : null;
   if(editing){
