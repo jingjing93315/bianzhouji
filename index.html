@@ -201,6 +201,7 @@
       <span class="mod" data-mod="en">英语学习</span>
       <span class="mod" data-mod="pmp">中项备考</span>
       <span class="mod" data-mod="kj">初级会计</span>
+      <span class="mod" data-mod="essay">随笔</span>
     </div>
   </header>
 
@@ -314,6 +315,21 @@
     </main>
   </div>
 
+  <!-- 随笔 / 随想视图 -->
+  <div id="essayView" class="hidden">
+    <div class="stats" id="essayStats"></div>
+    <div class="toolbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="essaySearch" placeholder="搜索随笔内容">
+      </div>
+      <button class="btn" id="addEssayBtn">+ 写随笔</button>
+    </div>
+    <main>
+      <div id="essayList"></div>
+    </main>
+  </div>
+
   <nav>
     <div class="tab active" data-view="shelf"><span class="ico">📚</span>书架</div>
     <div class="tab" data-view="data"><span class="ico">⚙️</span>数据</div>
@@ -417,7 +433,33 @@
   </div>
 </div>
 
-<!-- 英语：打卡弹窗 -->
+<!-- 随笔 / 随想弹窗 -->
+<div class="mask" id="essayMask">
+  <div class="sheet">
+    <h2>写随笔</h2>
+    <div class="row2">
+      <div class="field"><label>日期</label><input id="essayDate" type="date"></div>
+      <div class="field"><label>心情</label>
+        <select id="essayMood">
+          <option value="">—</option>
+          <option>😌 平静</option><option>🤔 思考</option><option>😮 触动</option>
+          <option>😊 愉悦</option><option>😢 低落</option><option>💡 启发</option><option>🔥 笃定</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>内容 *</label><textarea id="essayContent" placeholder="今天突然冒出来的想法、一段回忆、一句想记住的话……"></textarea></div>
+    <div class="field">
+      <label>三色标记</label>
+      <div class="seg mk" id="essayMark"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">🔴重点 · 🔵疑问 · 🟢感悟（不标也可）</div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="essayCancel">取消</button>
+      <button class="btn" id="essaySave">保存</button>
+    </div>
+  </div>
+</div>
+
 <div class="mask" id="enCheckinMask">
   <div class="sheet">
     <h2>学习打卡</h2>
@@ -591,7 +633,8 @@ const SUB = {
   reading:"个人知识体系 · 阅读",
   en:"个人知识体系 · 英语学习",
   pmp:"个人知识体系 · 中项备考",
-  kj:"个人知识体系 · 初级会计"
+  kj:"个人知识体系 · 初级会计",
+  essay:"个人知识体系 · 随笔"
 };
 const EXAM_DEFS = {
   pmp:{ name:"中项备考", subjects:PMP_SUBJECTS,
@@ -601,7 +644,7 @@ const EXAM_DEFS = {
 };
 
 let DB = {
-  books:[], excerpts:[], reflections:[],
+  books:[], excerpts:[], reflections:[], essays:[],
   en:{ checkins:[], vocab:[] },
   exams:{
     pmp:{ exam:null, checkins:[], notes:[], mistakes:[], scores:[] },
@@ -611,7 +654,7 @@ let DB = {
 let currentModule = "reading";
 let state = { status:"all", dir:"all", search:"", curBook:null, editingBook:null, rating:0,
   bkAutoAuthor:"", bkAutoDir:"", editing:null, exMark:"all",
-  enType:"all", enSearch:"", examSub:"all", examSearch:"" };
+  enType:"all", enSearch:"", examSub:"all", examSearch:"", essaySearch:"" };
 
 /* ---------- 存储 ---------- */
 function load(){
@@ -622,6 +665,7 @@ function load(){
       DB.books = d.books||[];
       DB.excerpts = d.excerpts||[];
       DB.reflections = d.reflections||[];
+      DB.essays = d.essays||[];
       DB.en = d.en||{checkins:[],vocab:[]};
       DB.en.checkins = DB.en.checkins||[];
       DB.en.vocab = DB.en.vocab||[];
@@ -660,6 +704,11 @@ function seed(){
     id:uid(), bookId:id, date:today(), mood:"🤔 思考",
     content:"开篇的宣言已经埋下反讽。所谓革命，最后往往复刻它推翻的东西。",
     createdAt:Date.now()
+  });
+  DB.essays.push({
+    id:uid(), date:today(), mood:"💡 启发",
+    content:"把一天里突然冒出来的念头记下来，比事后回想靠谱得多。三色标记帮我把「值得回看的重点」和「一时的情绪」分开。",
+    mark:"insight", createdAt:Date.now()
   });
 }
 
@@ -1254,9 +1303,14 @@ function switchModule(m){
   document.getElementById("detailView").classList.remove("show");
   document.getElementById("enView").classList.toggle("hidden", m!=="en");
   document.getElementById("examView").classList.toggle("hidden", !(m==="pmp"||m==="kj"));
+  document.getElementById("essayView").classList.toggle("hidden", m!=="essay");
   window.scrollTo(0,0);
   if(m==="reading") renderAll();
   else if(m==="en") renderEn();
+  else if(m==="essay"){
+    state.essaySearch=""; const es=document.getElementById("essaySearch"); if(es) es.value="";
+    renderEssays();
+  }
   else if(m==="pmp"||m==="kj"){
     state.examSub="all"; state.examSearch="";
     const es=document.getElementById("examSearch"); if(es) es.value="";
@@ -1444,6 +1498,7 @@ function setSheetTitle(maskId, isEdit, addText, editText){
 const EDIT_OPENERS = {
   ex:     id=>openExcerptSheet(id),
   rf:     id=>openReflectionSheet(id),
+  essay:  id=>openEssaySheet(id),
   enCk:   id=>openEnCheckin(id),
   enVb:   id=>openEnVocab(id),
   examCk: id=>openExamCheckin(id),
@@ -1562,6 +1617,63 @@ function saveReflection(){
   }
   DB.reflections.push({id:uid(), bookId:state.curBook, ...data, createdAt:Date.now()});
   save(); hideMask("refMask"); renderEntries(); renderBooks(); toast("已添加感想");
+}
+
+/* ---------- 随笔 / 随想 ---------- */
+function renderEssays(){
+  const list=DB.essays;
+  document.getElementById("essayStats").innerHTML = `<div class="stat"><div class="num">${list.length}</div><div class="lbl">随笔</div></div>`;
+  const q=state.essaySearch.trim().toLowerCase();
+  let es=list.slice().sort((a,b)=>b.createdAt-a.createdAt);
+  if(q) es=es.filter(e=>(e.content||"").toLowerCase().includes(q)||(e.mood||"").toLowerCase().includes(q)||(e.date||"").toLowerCase().includes(q));
+  document.getElementById("essayList").innerHTML = es.length? es.map(e=>`
+    <div class="entry" style="${markLeft(e.mark)}">
+      <button class="edit" data-type="essay" data-id="${e.id}">编辑</button>
+      <button class="del" data-type="essay" data-id="${e.id}">删除</button>
+      <div class="ehead"><span>${esc(e.date||"")}</span>${e.mood?`<span class="sub-tag">${esc(e.mood)}</span>`:""}${markTagSpan(e.mark)}</div>
+      <div class="content" style="white-space:pre-wrap;line-height:1.7;margin-top:4px">${esc(e.content)}</div>
+    </div>`).join("") : `<div class="empty" style="padding:24px">还没有随笔，点右上角「+ 写随笔」记下今天的念头吧</div>`;
+
+  document.querySelectorAll("#essayView .del").forEach(btn=>{
+    btn.onclick=()=>{
+      if(confirm("删除这条随笔？")){
+        DB.essays=DB.essays.filter(x=>x.id!==btn.dataset.id);
+        save(); renderEssays(); toast("已删除");
+      }
+    };
+  });
+  bindEntryEdit("#essayView");
+}
+function openEssaySheet(id){
+  id = normRecId(id);
+  state.editing = id ? {kind:"essay", id} : null;
+  const e = id ? DB.essays.find(x=>x.id===id) : null;
+  setSheetTitle("essayMask", !!e, "写随笔", "编辑随笔");
+  document.getElementById("essayDate").value = e ? (e.date||today()) : today();
+  document.getElementById("essayMood").value = e ? (e.mood||"") : "";
+  document.getElementById("essayContent").value = e ? (e.content||"") : "";
+  renderMarkSeg("essayMark", ["key","doubt","insight"], e ? (e.mark||"") : "");
+  showMask("essayMask");
+}
+function saveEssay(){
+  const content=document.getElementById("essayContent").value.trim();
+  if(!content){ toast("请填写随笔内容"); return; }
+  const data={
+    date: document.getElementById("essayDate").value||today(),
+    mood: document.getElementById("essayMood").value,
+    content,
+    mark: getMark("essayMark")
+  };
+  const editing = state.editing && state.editing.kind==="essay" ? state.editing.id : null;
+  if(editing){
+    const e=DB.essays.find(x=>x.id===editing);
+    if(e) Object.assign(e, data, {updatedAt:Date.now()});
+    state.editing=null;
+    save(); hideMask("essayMask"); renderEssays(); toast("已更新");
+    return;
+  }
+  DB.essays.push({id:uid(), ...data, createdAt:Date.now()});
+  save(); hideMask("essayMask"); renderEssays(); toast("已记下");
 }
 
 /* ---------- 英语学习 ---------- */
@@ -1951,6 +2063,7 @@ function importJSON(file){
       DB.books=[...DB.books,...(data.books||[])];
       DB.excerpts=[...DB.excerpts,...(data.excerpts||[])];
       DB.reflections=[...DB.reflections,...(data.reflections||[])];
+      DB.essays=[...DB.essays,...(data.essays||[])];
       const en=data.en||{}; DB.en.checkins=[...DB.en.checkins,...(en.checkins||[])]; DB.en.vocab=[...DB.en.vocab,...(en.vocab||[])];
       const exams=data.exams||{};
       const oldPmp=data.pmp||{};
@@ -1997,6 +2110,8 @@ function bind(){
         {label:"❌ 错题", onClick:openExamMistake},
         {label:"📊 模拟成绩", onClick:openExamScore}
       ]);
+    } else if(currentModule==="essay"){
+      openEssaySheet(null);
     }
   };
   document.getElementById("bookCancel").onclick=()=>hideMask("bookMask");
@@ -2018,6 +2133,14 @@ function bind(){
   document.getElementById("rfCancel").onclick=()=>hideMask("refMask");
   document.getElementById("rfSave").onclick=saveReflection;
   document.getElementById("backBtn").onclick=backToShelf;
+
+  // 随笔
+  document.getElementById("addEssayBtn").onclick=()=>openEssaySheet(null);
+  document.getElementById("essayCancel").onclick=()=>hideMask("essayMask");
+  document.getElementById("essaySave").onclick=saveEssay;
+  let esayt; document.getElementById("essaySearch").oninput=e=>{
+    clearTimeout(esayt); esayt=setTimeout(()=>{ state.essaySearch=e.target.value; renderEssays(); },200);
+  };
 
   document.querySelectorAll("#statusFilters .chip").forEach(c=>c.onclick=()=>{
     document.querySelectorAll("#statusFilters .chip").forEach(x=>x.classList.remove("active"));
@@ -2072,6 +2195,7 @@ function bind(){
     if(t.dataset.view==="data"){
       document.getElementById("dataStats").innerHTML=
         `阅读：${DB.books.length} 本 · ${DB.excerpts.length} 书摘 · ${DB.reflections.length} 感想<br>`+
+        `随笔：${DB.essays.length} 篇<br>`+
         `英语：${DB.en.checkins.length} 打卡 · ${DB.en.vocab.length} 词条<br>`+
         `中项备考：${DB.exams.pmp.checkins.length} 打卡 · ${DB.exams.pmp.notes.length} 知识点 · ${DB.exams.pmp.mistakes.length} 错题 · ${DB.exams.pmp.scores.length} 成绩<br>`+
         `初级会计：${DB.exams.kj.checkins.length} 打卡 · ${DB.exams.kj.notes.length} 知识点 · ${DB.exams.kj.mistakes.length} 错题 · ${DB.exams.kj.scores.length} 成绩`;
@@ -2089,7 +2213,7 @@ function bind(){
   document.getElementById("addPickCancel").onclick=()=>hideMask("addPickMask");
 
   // 点击遮罩空白处关闭
-  ["bookMask","excerptMask","refMask","enCheckinMask","enVocabMask","examExamMask",
+  ["bookMask","excerptMask","refMask","essayMask","enCheckinMask","enVocabMask","examExamMask",
    "examCheckinMask","examNoteMask","examMistakeMask","examScoreMask","dataMask","addPickMask"].forEach(id=>{
     document.getElementById(id).onclick=e=>{ if(e.target.id===id) hideMask(id); };
   });
