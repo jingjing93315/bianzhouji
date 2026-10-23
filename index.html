@@ -124,6 +124,9 @@
   .entry .mood{font-size:16px;}
   .entry .del{position:absolute;top:10px;right:10px;color:var(--muted);cursor:pointer;font-size:13px;border:none;background:none;}
   .entry .del:active{color:var(--danger);}
+  .entry .edit{position:absolute;top:10px;right:52px;color:var(--primary);cursor:pointer;font-size:13px;border:none;background:none;opacity:.75;}
+  .entry .edit:active{opacity:1;}
+  .entry .ehead{padding-right:70px;}
   .sub-tag{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--primary-soft);color:var(--primary);white-space:nowrap;}
   .sub-tag.b{background:#fbe9e0;color:#c2643a;}
   .ans-my{color:var(--danger);}
@@ -584,7 +587,7 @@ let DB = {
 };
 let currentModule = "reading";
 let state = { status:"all", dir:"all", search:"", curBook:null, editingBook:null, rating:0,
-  bkAutoAuthor:"", bkAutoDir:"",
+  bkAutoAuthor:"", bkAutoDir:"", editing:null,
   enType:"all", enSearch:"", examSub:"all", examSearch:"" };
 
 /* ---------- 存储 ---------- */
@@ -1334,6 +1337,7 @@ function renderEntries(){
   const exs=DB.excerpts.filter(e=>e.bookId===id).sort((a,b)=>a.createdAt-b.createdAt);
   document.getElementById("excerptList").innerHTML = exs.length? exs.map(e=>`
     <div class="entry">
+      <button class="edit" data-type="ex" data-id="${e.id}">编辑</button>
       <button class="del" data-type="ex" data-id="${e.id}">删除</button>
       <div class="ehead"><span class="page">${esc(e.page||"书摘")}</span></div>
       <div class="content">${esc(e.content)}</div>
@@ -1343,6 +1347,7 @@ function renderEntries(){
   const rfs=DB.reflections.filter(r=>r.bookId===id).sort((a,b)=>a.createdAt-b.createdAt);
   document.getElementById("reflectionList").innerHTML = rfs.length? rfs.map(r=>`
     <div class="entry">
+      <button class="edit" data-type="rf" data-id="${r.id}">编辑</button>
       <button class="del" data-type="rf" data-id="${r.id}">删除</button>
       <div class="ehead"><span>${esc(r.date||"")}</span>${r.mood?`<span class="mood">${esc(r.mood)}</span>`:""}</div>
       <div class="content">${esc(r.content)}</div>
@@ -1358,6 +1363,7 @@ function renderEntries(){
       }
     };
   });
+  bindEntryEdit("#detailView");
 }
 function backToShelf(){
   document.getElementById("detailView").classList.remove("show");
@@ -1404,23 +1410,85 @@ function saveBook(){
   save(); hideMask("bookMask"); renderAll(); toast("已保存");
 }
 
+/* ---------- 记录编辑：统一入口 ---------- */
+function normRecId(id){ return (typeof id==="string" && id) ? id : null; }
+function setSheetTitle(maskId, isEdit, addText, editText){
+  const h=document.querySelector("#"+maskId+" h2");
+  if(h) h.textContent = isEdit ? editText : addText;
+}
+const EDIT_OPENERS = {
+  ex:     id=>openExcerptSheet(id),
+  rf:     id=>openReflectionSheet(id),
+  enCk:   id=>openEnCheckin(id),
+  enVb:   id=>openEnVocab(id),
+  examCk: id=>openExamCheckin(id),
+  examNt: id=>openExamNote(id),
+  examMs: id=>openExamMistake(id),
+  examSc: id=>openExamScore(id)
+};
+function bindEntryEdit(scope){
+  document.querySelectorAll(scope+" .edit").forEach(btn=>{
+    btn.onclick=()=>{ const f=EDIT_OPENERS[btn.dataset.type]; if(f) f(btn.dataset.id); };
+  });
+}
+
 /* ---------- 阅读：书摘 / 感想 ---------- */
+function openExcerptSheet(id){
+  id = normRecId(id);
+  state.editing = id ? {kind:"ex", id} : null;
+  const e = id ? DB.excerpts.find(x=>x.id===id) : null;
+  setSheetTitle("excerptMask", !!e, "添加书摘", "编辑书摘");
+  document.getElementById("exPage").value = e ? (e.page||"") : "";
+  document.getElementById("exContent").value = e ? (e.content||"") : "";
+  document.getElementById("exTags").value = e ? (e.tags||"") : "";
+  showMask("excerptMask");
+}
 function saveExcerpt(){
   const content=document.getElementById("exContent").value.trim();
   if(!content){ toast("请填写书摘内容"); return; }
-  DB.excerpts.push({
-    id:uid(), bookId:state.curBook, page:document.getElementById("exPage").value.trim(),
-    content, tags:document.getElementById("exTags").value.trim(), createdAt:Date.now()
-  });
+  const data={
+    page: document.getElementById("exPage").value.trim(),
+    content,
+    tags: document.getElementById("exTags").value.trim()
+  };
+  const editing = state.editing && state.editing.kind==="ex" ? state.editing.id : null;
+  if(editing){
+    const e=DB.excerpts.find(x=>x.id===editing);
+    if(e) Object.assign(e, data, {updatedAt:Date.now()});
+    state.editing=null;
+    save(); hideMask("excerptMask"); renderEntries(); renderBooks(); toast("已更新");
+    return;
+  }
+  DB.excerpts.push({id:uid(), bookId:state.curBook, ...data, createdAt:Date.now()});
   save(); hideMask("excerptMask"); renderEntries(); renderBooks(); toast("已添加书摘");
+}
+function openReflectionSheet(id){
+  id = normRecId(id);
+  state.editing = id ? {kind:"rf", id} : null;
+  const r = id ? DB.reflections.find(x=>x.id===id) : null;
+  setSheetTitle("refMask", !!r, "添加感想", "编辑感想");
+  document.getElementById("rfDate").value = r ? (r.date||today()) : today();
+  document.getElementById("rfMood").value = r ? (r.mood||"") : "";
+  document.getElementById("rfContent").value = r ? (r.content||"") : "";
+  showMask("refMask");
 }
 function saveReflection(){
   const content=document.getElementById("rfContent").value.trim();
   if(!content){ toast("请填写感想内容"); return; }
-  DB.reflections.push({
-    id:uid(), bookId:state.curBook, date:document.getElementById("rfDate").value||today(),
-    mood:document.getElementById("rfMood").value, content, createdAt:Date.now()
-  });
+  const data={
+    date: document.getElementById("rfDate").value||today(),
+    mood: document.getElementById("rfMood").value,
+    content
+  };
+  const editing = state.editing && state.editing.kind==="rf" ? state.editing.id : null;
+  if(editing){
+    const r=DB.reflections.find(x=>x.id===editing);
+    if(r) Object.assign(r, data, {updatedAt:Date.now()});
+    state.editing=null;
+    save(); hideMask("refMask"); renderEntries(); renderBooks(); toast("已更新");
+    return;
+  }
+  DB.reflections.push({id:uid(), bookId:state.curBook, ...data, createdAt:Date.now()});
   save(); hideMask("refMask"); renderEntries(); renderBooks(); toast("已添加感想");
 }
 
@@ -1442,6 +1510,7 @@ function renderEn(){
   if(q) cs=cs.filter(c=>(c.note||"").toLowerCase().includes(q)||c.type.toLowerCase().includes(q));
   document.getElementById("enCheckinList").innerHTML = cs.length? cs.map(c=>`
     <div class="entry">
+      <button class="edit" data-type="enCk" data-id="${c.id}">编辑</button>
       <button class="del" data-type="enCk" data-id="${c.id}">删除</button>
       <div class="ehead"><span>${esc(c.date)}</span><span class="sub-tag">${esc(c.type)}</span><span class="page">${c.minutes||0} 分钟</span></div>
       ${c.note?`<div class="content">${esc(c.note)}</div>`:""}
@@ -1450,6 +1519,7 @@ function renderEn(){
   const vs=en.vocab.slice().sort((a,b)=>b.createdAt-a.createdAt);
   document.getElementById("enVocabList").innerHTML = vs.length? vs.map(v=>`
     <div class="entry">
+      <button class="edit" data-type="enVb" data-id="${v.id}">编辑</button>
       <button class="del" data-type="enVb" data-id="${v.id}">删除</button>
       <div class="ehead"><span class="page">📘</span>${v.tags?tagsHtml(v.tags):""}</div>
       <div class="content"><b>${esc(v.word)}</b>${v.meaning?` — ${esc(v.meaning)}`:""}</div>
@@ -1466,40 +1536,67 @@ function renderEn(){
       }
     };
   });
+  bindEntryEdit("#enView");
 }
-function openEnCheckin(){
-  document.getElementById("enCkDate").value=today();
-  document.getElementById("enCkMin").value="";
-  document.getElementById("enCkNote").value="";
-  document.querySelectorAll("#enCkType .opt").forEach(o=>o.classList.toggle("active",o.dataset.v==="单词"));
+function openEnCheckin(id){
+  id = normRecId(id);
+  state.editing = id ? {kind:"enCk", id} : null;
+  const c = id ? DB.en.checkins.find(x=>x.id===id) : null;
+  setSheetTitle("enCheckinMask", !!c, "学习打卡", "编辑打卡");
+  document.getElementById("enCkDate").value = c ? (c.date||today()) : today();
+  document.getElementById("enCkMin").value = c ? (c.minutes||"") : "";
+  document.getElementById("enCkNote").value = c ? (c.note||"") : "";
+  document.querySelectorAll("#enCkType .opt").forEach(o=>o.classList.toggle("active", o.dataset.v === (c ? c.type : "单词")));
   showMask("enCheckinMask");
 }
 function saveEnCheckin(){
   const date=document.getElementById("enCkDate").value||today();
   const type=document.querySelector("#enCkType .opt.active").dataset.v;
-  DB.en.checkins.push({
-    id:uid(), date, type,
+  const data={
+    date, type,
     minutes:parseInt(document.getElementById("enCkMin").value||"0",10)||0,
-    note:document.getElementById("enCkNote").value.trim(), createdAt:Date.now()
-  });
+    note:document.getElementById("enCkNote").value.trim()
+  };
+  const editing = state.editing && state.editing.kind==="enCk" ? state.editing.id : null;
+  if(editing){
+    const c=DB.en.checkins.find(x=>x.id===editing);
+    if(c) Object.assign(c, data, {updatedAt:Date.now()});
+    state.editing=null;
+    save(); hideMask("enCheckinMask"); renderEn(); toast("已更新");
+    return;
+  }
+  DB.en.checkins.push({id:uid(), ...data, createdAt:Date.now()});
   save(); hideMask("enCheckinMask"); renderEn(); toast("已打卡");
 }
-function openEnVocab(){
-  document.getElementById("enVbWord").value="";
-  document.getElementById("enVbMeaning").value="";
-  document.getElementById("enVbExample").value="";
-  document.getElementById("enVbTags").value="";
+function openEnVocab(id){
+  id = normRecId(id);
+  state.editing = id ? {kind:"enVb", id} : null;
+  const v = id ? DB.en.vocab.find(x=>x.id===id) : null;
+  setSheetTitle("enVocabMask", !!v, "添加词条", "编辑词条");
+  document.getElementById("enVbWord").value = v ? (v.word||"") : "";
+  document.getElementById("enVbMeaning").value = v ? (v.meaning||"") : "";
+  document.getElementById("enVbExample").value = v ? (v.example||"") : "";
+  document.getElementById("enVbTags").value = v ? (v.tags||"") : "";
   showMask("enVocabMask");
 }
 function saveEnVocab(){
   const word=document.getElementById("enVbWord").value.trim();
   if(!word){ toast("请填写单词/短语"); return; }
-  DB.en.vocab.push({
-    id:uid(), word,
+  const data={
+    word,
     meaning:document.getElementById("enVbMeaning").value.trim(),
     example:document.getElementById("enVbExample").value.trim(),
-    tags:document.getElementById("enVbTags").value.trim(), createdAt:Date.now()
-  });
+    tags:document.getElementById("enVbTags").value.trim()
+  };
+  const editing = state.editing && state.editing.kind==="enVb" ? state.editing.id : null;
+  if(editing){
+    const v=DB.en.vocab.find(x=>x.id===editing);
+    if(v) Object.assign(v, data, {updatedAt:Date.now()});
+    state.editing=null;
+    save(); hideMask("enVocabMask"); renderEn(); toast("已更新");
+    return;
+  }
+  DB.en.vocab.push({id:uid(), ...data, createdAt:Date.now()});
   save(); hideMask("enVocabMask"); renderEn(); toast("已添加词条");
 }
 
@@ -1548,6 +1645,7 @@ function renderExam(key){
   if(q) cs=cs.filter(c=>(c.chapter||"").toLowerCase().includes(q)||(c.note||"").toLowerCase().includes(q)||(c.subject||"").toLowerCase().includes(q));
   document.getElementById("examCheckinList").innerHTML = cs.length? cs.map(c=>`
     <div class="entry">
+      <button class="edit" data-type="examCk" data-id="${c.id}">编辑</button>
       <button class="del" data-type="examCk" data-id="${c.id}">删除</button>
       <div class="ehead"><span>${esc(c.date)}</span><span class="sub-tag">${esc(c.subject)}</span><span class="page">${c.minutes||0} 分钟</span></div>
       ${c.chapter?`<div class="content">${esc(c.chapter)}</div>`:""}
@@ -1559,6 +1657,7 @@ function renderExam(key){
   if(q) ns=ns.filter(n=>(n.title||"").toLowerCase().includes(q)||(n.content||"").toLowerCase().includes(q));
   document.getElementById("examNoteList").innerHTML = ns.length? ns.map(n=>`
     <div class="entry">
+      <button class="edit" data-type="examNt" data-id="${n.id}">编辑</button>
       <button class="del" data-type="examNt" data-id="${n.id}">删除</button>
       <div class="ehead"><span class="sub-tag b">${esc(n.subject)}</span></div>
       <div class="content"><b>${esc(n.title)}</b></div>
@@ -1570,6 +1669,7 @@ function renderExam(key){
   if(q) ms=ms.filter(m=>(m.question||"").toLowerCase().includes(q)||(m.analysis||"").toLowerCase().includes(q)||(m.tag||"").toLowerCase().includes(q));
   document.getElementById("examMistakeList").innerHTML = ms.length? ms.map(m=>`
     <div class="entry">
+      <button class="edit" data-type="examMs" data-id="${m.id}">编辑</button>
       <button class="del" data-type="examMs" data-id="${m.id}">删除</button>
       <div class="ehead"><span class="sub-tag">${esc(m.tag||"错题")}</span></div>
       <div class="content"><b>题：</b>${esc(m.question)}</div>
@@ -1584,6 +1684,7 @@ function renderExam(key){
   document.getElementById("examScoreList").innerHTML = sc.length? sc.map(s=>{
     const total=s.total||75; const pct=Math.round(s.score/total*100);
     return `<div class="entry">
+      <button class="edit" data-type="examSc" data-id="${s.id}">编辑</button>
       <button class="del" data-type="examSc" data-id="${s.id}">删除</button>
       <div class="ehead"><span>${esc(s.date)}</span><span class="sub-tag">${esc(s.subject)}</span><span class="page">${s.score}/${total}（${pct}%）</span></div>
     </div>`;
@@ -1602,6 +1703,7 @@ function renderExam(key){
       }
     };
   });
+  bindEntryEdit("#examView");
 }
 function fillExamSubjectSelect(key, selId){
   document.getElementById(selId).innerHTML = EXAM_DEFS[key].subjects.map(s=>`<option>${s}</option>`).join("");
@@ -1616,75 +1718,130 @@ function saveExamExam(){
   DB.exams[currentModule].exam=document.getElementById("examExamDate").value||null;
   save(); hideMask("examExamMask"); renderExamCountdown(currentModule); toast(DB.exams[currentModule].exam?"已设置":"已清除");
 }
-function openExamCheckin(){
-  document.getElementById("examCkDate").value=today();
-  document.getElementById("examCkMin").value="";
-  document.getElementById("examCkChapter").value="";
-  document.getElementById("examCkNote").value="";
+function openExamCheckin(id){
+  id = normRecId(id);
+  state.editing = id ? {kind:"examCk", id} : null;
+  const c = id ? DB.exams[currentModule].checkins.find(x=>x.id===id) : null;
+  setSheetTitle("examCheckinMask", !!c, "学习打卡", "编辑打卡");
   fillExamSubjectSelect(currentModule,"examCkSubject");
+  document.getElementById("examCkDate").value = c ? (c.date||today()) : today();
+  document.getElementById("examCkMin").value = c ? (c.minutes||"") : "";
+  document.getElementById("examCkChapter").value = c ? (c.chapter||"") : "";
+  document.getElementById("examCkNote").value = c ? (c.note||"") : "";
+  if(c && c.subject) document.getElementById("examCkSubject").value = c.subject;
   showMask("examCheckinMask");
 }
 function saveExamCheckin(){
-  DB.exams[currentModule].checkins.push({
-    id:uid(), date:document.getElementById("examCkDate").value||today(),
+  const data={
+    date:document.getElementById("examCkDate").value||today(),
     subject:document.getElementById("examCkSubject").value,
     chapter:document.getElementById("examCkChapter").value.trim(),
     minutes:parseInt(document.getElementById("examCkMin").value||"0",10)||0,
-    note:document.getElementById("examCkNote").value.trim(), createdAt:Date.now()
-  });
+    note:document.getElementById("examCkNote").value.trim()
+  };
+  const editing = state.editing && state.editing.kind==="examCk" ? state.editing.id : null;
+  if(editing){
+    const c=DB.exams[currentModule].checkins.find(x=>x.id===editing);
+    if(c) Object.assign(c, data, {updatedAt:Date.now()});
+    state.editing=null;
+    save(); hideMask("examCheckinMask"); renderExamSubjectsFilter(currentModule); renderExam(currentModule); toast("已更新");
+    return;
+  }
+  DB.exams[currentModule].checkins.push({id:uid(), ...data, createdAt:Date.now()});
   save(); hideMask("examCheckinMask"); renderExamSubjectsFilter(currentModule); renderExam(currentModule); toast("已打卡");
 }
-function openExamNote(){
-  document.getElementById("examNtTitle").value="";
-  document.getElementById("examNtContent").value="";
+function openExamNote(id){
+  id = normRecId(id);
+  state.editing = id ? {kind:"examNt", id} : null;
+  const n = id ? DB.exams[currentModule].notes.find(x=>x.id===id) : null;
+  setSheetTitle("examNoteMask", !!n, "知识点", "编辑知识点");
   fillExamSubjectSelect(currentModule,"examNtSubject");
+  document.getElementById("examNtTitle").value = n ? (n.title||"") : "";
+  document.getElementById("examNtContent").value = n ? (n.content||"") : "";
+  if(n && n.subject) document.getElementById("examNtSubject").value = n.subject;
   showMask("examNoteMask");
 }
 function saveExamNote(){
   const title=document.getElementById("examNtTitle").value.trim();
   if(!title){ toast("请填写标题"); return; }
-  DB.exams[currentModule].notes.push({
-    id:uid(), title,
+  const data={
+    title,
     subject:document.getElementById("examNtSubject").value,
-    content:document.getElementById("examNtContent").value.trim(), createdAt:Date.now()
-  });
+    content:document.getElementById("examNtContent").value.trim()
+  };
+  const editing = state.editing && state.editing.kind==="examNt" ? state.editing.id : null;
+  if(editing){
+    const n=DB.exams[currentModule].notes.find(x=>x.id===editing);
+    if(n) Object.assign(n, data, {updatedAt:Date.now()});
+    state.editing=null;
+    save(); hideMask("examNoteMask"); renderExamSubjectsFilter(currentModule); renderExam(currentModule); toast("已更新");
+    return;
+  }
+  DB.exams[currentModule].notes.push({id:uid(), ...data, createdAt:Date.now()});
   save(); hideMask("examNoteMask"); renderExamSubjectsFilter(currentModule); renderExam(currentModule); toast("已保存");
 }
-function openExamMistake(){
-  document.getElementById("examMsQuestion").value="";
-  document.getElementById("examMsMy").value="";
-  document.getElementById("examMsCorrect").value="";
-  document.getElementById("examMsAnalysis").value="";
-  document.getElementById("examMsTag").value="";
+function openExamMistake(id){
+  id = normRecId(id);
+  state.editing = id ? {kind:"examMs", id} : null;
+  const m = id ? DB.exams[currentModule].mistakes.find(x=>x.id===id) : null;
+  setSheetTitle("examMistakeMask", !!m, "错题", "编辑错题");
+  document.getElementById("examMsQuestion").value = m ? (m.question||"") : "";
+  document.getElementById("examMsMy").value = m ? (m.my||"") : "";
+  document.getElementById("examMsCorrect").value = m ? (m.correct||"") : "";
+  document.getElementById("examMsAnalysis").value = m ? (m.analysis||"") : "";
+  document.getElementById("examMsTag").value = m ? (m.tag||"") : "";
   showMask("examMistakeMask");
 }
 function saveExamMistake(){
   const q=document.getElementById("examMsQuestion").value.trim();
   if(!q){ toast("请填写题目"); return; }
-  DB.exams[currentModule].mistakes.push({
-    id:uid(), question:q,
+  const data={
+    question:q,
     my:document.getElementById("examMsMy").value.trim(),
     correct:document.getElementById("examMsCorrect").value.trim(),
     analysis:document.getElementById("examMsAnalysis").value.trim(),
-    tag:document.getElementById("examMsTag").value.trim(), createdAt:Date.now()
-  });
+    tag:document.getElementById("examMsTag").value.trim()
+  };
+  const editing = state.editing && state.editing.kind==="examMs" ? state.editing.id : null;
+  if(editing){
+    const m=DB.exams[currentModule].mistakes.find(x=>x.id===editing);
+    if(m) Object.assign(m, data, {updatedAt:Date.now()});
+    state.editing=null;
+    save(); hideMask("examMistakeMask"); renderExam(currentModule); toast("已更新");
+    return;
+  }
+  DB.exams[currentModule].mistakes.push({id:uid(), ...data, createdAt:Date.now()});
   save(); hideMask("examMistakeMask"); renderExam(currentModule); toast("已添加错题");
 }
-function openExamScore(){
-  document.getElementById("examScDate").value=today();
-  document.getElementById("examScScore").value="";
-  document.getElementById("examScTotal").value="75";
+function openExamScore(id){
+  id = normRecId(id);
+  state.editing = id ? {kind:"examSc", id} : null;
+  const s = id ? DB.exams[currentModule].scores.find(x=>x.id===id) : null;
+  setSheetTitle("examScoreMask", !!s, "模拟成绩", "编辑成绩");
   fillExamSubjectSelect(currentModule,"examScSubject");
+  document.getElementById("examScDate").value = s ? (s.date||today()) : today();
+  document.getElementById("examScScore").value = s ? s.score : "";
+  document.getElementById("examScTotal").value = s ? (s.total||75) : "75";
+  if(s && s.subject) document.getElementById("examScSubject").value = s.subject;
   showMask("examScoreMask");
 }
 function saveExamScore(){
   const score=parseInt(document.getElementById("examScScore").value||"0",10);
   if(!score && score!==0){ toast("请填写分数"); return; }
-  DB.exams[currentModule].scores.push({
-    id:uid(), date:document.getElementById("examScDate").value||today(),
+  const data={
+    date:document.getElementById("examScDate").value||today(),
     score, subject:document.getElementById("examScSubject").value,
-    total:parseInt(document.getElementById("examScTotal").value||"75",10)||75, createdAt:Date.now()
-  });
+    total:parseInt(document.getElementById("examScTotal").value||"75",10)||75
+  };
+  const editing = state.editing && state.editing.kind==="examSc" ? state.editing.id : null;
+  if(editing){
+    const s=DB.exams[currentModule].scores.find(x=>x.id===editing);
+    if(s) Object.assign(s, data, {updatedAt:Date.now()});
+    state.editing=null;
+    save(); hideMask("examScoreMask"); renderExam(currentModule); toast("已更新");
+    return;
+  }
+  DB.exams[currentModule].scores.push({id:uid(), ...data, createdAt:Date.now()});
   save(); hideMask("examScoreMask"); renderExam(currentModule); toast("已记录");
 }
 
@@ -1750,7 +1907,7 @@ function bind(){
   document.getElementById("addBookBtn").onclick=()=>openBookSheet(null);
   document.getElementById("fab").onclick=()=>{
     if(currentModule==="reading"){
-      if(document.getElementById("detailView").classList.contains("show")) showMask("excerptMask");
+      if(document.getElementById("detailView").classList.contains("show")) openExcerptSheet(null);
       else openBookSheet(null);
     } else if(currentModule==="en"){
       openAddPicker("英语学习 · 添加",[
@@ -1778,10 +1935,10 @@ function bind(){
   });
   document.querySelectorAll("#bkStars span").forEach(s=>s.onclick=()=>setStars(+s.dataset.v));
 
-  document.getElementById("addExcerptBtn").onclick=()=>showMask("excerptMask");
+  document.getElementById("addExcerptBtn").onclick=()=>openExcerptSheet(null);
   document.getElementById("exCancel").onclick=()=>hideMask("excerptMask");
   document.getElementById("exSave").onclick=saveExcerpt;
-  document.getElementById("addReflectionBtn").onclick=()=>showMask("refMask");
+  document.getElementById("addReflectionBtn").onclick=()=>openReflectionSheet(null);
   document.getElementById("rfCancel").onclick=()=>hideMask("refMask");
   document.getElementById("rfSave").onclick=saveReflection;
   document.getElementById("backBtn").onclick=backToShelf;
@@ -1795,8 +1952,8 @@ function bind(){
   };
 
   // 英语
-  document.getElementById("enAddCheckinBtn").onclick=openEnCheckin;
-  document.getElementById("enAddVocabBtn").onclick=openEnVocab;
+  document.getElementById("enAddCheckinBtn").onclick=()=>openEnCheckin(null);
+  document.getElementById("enAddVocabBtn").onclick=()=>openEnVocab(null);
   document.getElementById("enCkCancel").onclick=()=>hideMask("enCheckinMask");
   document.getElementById("enCkSave").onclick=saveEnCheckin;
   document.querySelectorAll("#enCkType .opt").forEach(o=>o.onclick=()=>{
@@ -1814,10 +1971,10 @@ function bind(){
   };
 
   // 考试（中项 / 初级会计通用）
-  document.getElementById("examAddCheckinBtn").onclick=openExamCheckin;
-  document.getElementById("examAddNoteBtn").onclick=openExamNote;
-  document.getElementById("examAddMistakeBtn").onclick=openExamMistake;
-  document.getElementById("examAddScoreBtn").onclick=openExamScore;
+  document.getElementById("examAddCheckinBtn").onclick=()=>openExamCheckin(null);
+  document.getElementById("examAddNoteBtn").onclick=()=>openExamNote(null);
+  document.getElementById("examAddMistakeBtn").onclick=()=>openExamMistake(null);
+  document.getElementById("examAddScoreBtn").onclick=()=>openExamScore(null);
   document.getElementById("examExamCancel").onclick=()=>hideMask("examExamMask");
   document.getElementById("examExamSave").onclick=saveExamExam;
   document.getElementById("examCkCancel").onclick=()=>hideMask("examCheckinMask");
