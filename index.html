@@ -125,7 +125,8 @@
   .section-title h3{font-size:15px;margin:0;display:flex;align-items:center;}
   .section-title h3 .cnt{margin-left:7px;font-size:11px;font-weight:600;color:var(--muted);background:#eef1f6;border-radius:9px;padding:1px 7px;font-variant-numeric:tabular-nums;}
   .section-title .btn{border-radius:999px;padding:5px 12px;font-size:12.5px;}
-  .entry{background:var(--card);border-radius:14px;padding:14px 15px;margin-bottom:10px;box-shadow:0 1px 2px rgba(20,24,33,.04),0 8px 20px -14px rgba(20,24,33,.32);position:relative;}
+  .entry{background:var(--card);border-radius:14px;padding:14px 15px;margin-bottom:10px;box-shadow:0 1px 2px rgba(20,24,33,.04),0 8px 20px -14px rgba(20,24,33,.32);position:relative;cursor:pointer;transition:box-shadow .15s;}
+  .entry.reveal{outline:1.5px solid rgba(67,97,168,.32);outline-offset:-1px;}
   .entry .ehead{display:flex;justify-content:flex-start;align-items:center;font-size:12px;color:var(--muted);margin-bottom:8px;gap:6px;flex-wrap:wrap;min-height:22px;padding-right:102px;}
   .entry .page{background:var(--primary-soft);color:var(--primary);padding:2px 8px;border-radius:8px;font-size:11px;white-space:nowrap;}
   .entry .content{font-size:14.5px;white-space:pre-wrap;word-break:break-word;line-height:1.78;color:#39414f;}
@@ -140,6 +141,8 @@
   .entry .edit:active{background:rgba(67,97,168,.18);}
   .entry .del{right:10px;color:#b25546;background:rgba(217,83,79,.08);}
   .entry .del:active{background:rgba(217,83,79,.18);color:#c0392b;}
+  .entry .edit,.entry .del{opacity:0;transform:scale(.92);pointer-events:none;}
+  .entry.reveal .edit,.entry.reveal .del{opacity:1;transform:scale(1);pointer-events:auto;}
   .mk-tag{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap;line-height:1.5;}
   .sub-tag{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--primary-soft);color:var(--primary);white-space:nowrap;}
   .sub-tag.b{background:#fbe9e0;color:#c2643a;}
@@ -2235,6 +2238,16 @@ function bind(){
   ["bookMask","excerptMask","refMask","essayMask","enCheckinMask","enVocabMask","examExamMask",
    "examCheckinMask","examNoteMask","examMistakeMask","examScoreMask","dataMask","addPickMask"].forEach(id=>{
     document.getElementById(id).onclick=e=>{ if(e.target.id===id) hideMask(id); };
+  });
+
+  // 记录卡片：点击才浮出「编辑 / 删除」，再点一次或点别处收起
+  document.addEventListener("click", e=>{
+    if(e.target.closest(".edit,.del")) return;            // 让编辑 / 删除自身逻辑先执行
+    const card = e.target.closest(".entry");
+    if(!card){ document.querySelectorAll(".entry.reveal").forEach(c=>c.classList.remove("reveal")); return; }
+    const open = card.classList.contains("reveal");
+    document.querySelectorAll(".entry.reveal").forEach(c=>c.classList.remove("reveal"));
+    if(!open) card.classList.add("reveal");
   });
 }
 
