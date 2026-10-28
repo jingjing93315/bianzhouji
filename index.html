@@ -33,6 +33,7 @@
   header{
     position:sticky;top:0;z-index:20;background:var(--card);
     border-bottom:1px solid var(--line);padding:14px 16px 10px;
+    box-shadow:0 6px 16px -12px rgba(20,24,33,.45);
   }
   .brand{display:flex;align-items:baseline;gap:8px;}
   .brand h1{font-size:20px;margin:0;letter-spacing:1px;font-weight:700;}
@@ -42,7 +43,7 @@
     flex:0 0 auto;padding:5px 13px;border-radius:18px;font-size:13px;
     background:var(--bg);color:var(--muted);border:1px solid transparent;white-space:nowrap;
   }
-  .mod.active{background:var(--primary-soft);color:var(--primary);font-weight:600;}
+  .mod.active{background:var(--primary-soft);color:var(--primary);font-weight:600;border-color:rgba(67,97,168,.22);}
   .mod.locked{opacity:.55;}
 
   /* Stats */
@@ -70,14 +71,20 @@
   .btn.ghost{background:var(--card);color:var(--primary);border:1px solid var(--line);font-weight:500;}
   .btn.sm{padding:6px 10px;font-size:13px;}
   .btn.danger{background:var(--danger);}
+  .btn.soft-danger{background:#fdf1f0;color:#c04a3d;border:1px solid #f6dbd7;font-weight:500;}
   .btn.soft{background:rgba(255,255,255,.25);color:#fff;border:1px solid rgba(255,255,255,.5);}
 
   .filters{display:flex;gap:6px;padding:0 16px 12px;flex-wrap:wrap;}
   .chip{
-    padding:5px 12px;border-radius:16px;font-size:13px;cursor:pointer;
-    background:var(--card);color:var(--muted);border:1px solid var(--line);
+    display:inline-flex;align-items:center;gap:4px;line-height:1.2;
+    padding:5px 11px;border-radius:16px;font-size:12.5px;cursor:pointer;
+    background:var(--card);color:var(--muted);border:1px solid var(--line);transition:.15s;
   }
-  .chip.active{background:var(--text);color:#fff;border-color:var(--text);}
+  .chip .n{font-size:11px;font-weight:700;opacity:.7;font-variant-numeric:tabular-nums;}
+  .chip.zero{opacity:.5;}
+  .chip.active{background:var(--text);color:#fff;border-color:var(--text);box-shadow:0 2px 7px rgba(44,51,64,.18);}
+  .chip.active .n{opacity:.92;}
+  #detailView .filters{padding:0 0 12px;}
 
   /* Book list */
   main{flex:1;padding:4px 16px 90px;}
@@ -113,20 +120,27 @@
   .detail-head .row{display:flex;gap:14px;align-items:flex-start;}
   .detail-head .title{font-size:20px;font-weight:700;margin:0;}
   .detail-head .author{color:var(--muted);font-size:14px;margin:4px 0 10px;}
-  .detail-head .note{font-size:14px;color:#55606e;background:var(--bg);padding:10px 12px;border-radius:10px;margin-top:10px;}
-  .section-title{display:flex;align-items:center;justify-content:space-between;margin:18px 4px 10px;}
-  .section-title h3{font-size:15px;margin:0;}
-  .entry{background:var(--card);border-radius:12px;padding:13px 14px;margin-bottom:10px;box-shadow:var(--shadow);position:relative;}
-  .entry .ehead{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-bottom:6px;gap:6px;flex-wrap:wrap;}
+  .detail-head .note{font-size:14px;color:#55606e;background:#f7f8fa;padding:11px 13px;border-radius:4px 10px 10px 4px;margin-top:10px;border-left:3px solid rgba(67,97,168,.32);line-height:1.72;}
+  .section-title{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px;gap:10px;}
+  .section-title h3{font-size:15px;margin:0;display:flex;align-items:center;}
+  .section-title h3 .cnt{margin-left:7px;font-size:11px;font-weight:600;color:var(--muted);background:#eef1f6;border-radius:9px;padding:1px 7px;font-variant-numeric:tabular-nums;}
+  .section-title .btn{border-radius:999px;padding:5px 12px;font-size:12.5px;}
+  .entry{background:var(--card);border-radius:14px;padding:14px 15px;margin-bottom:10px;box-shadow:0 1px 2px rgba(20,24,33,.04),0 8px 20px -14px rgba(20,24,33,.32);position:relative;}
+  .entry .ehead{display:flex;justify-content:flex-start;align-items:center;font-size:12px;color:var(--muted);margin-bottom:8px;gap:6px;flex-wrap:wrap;min-height:22px;padding-right:102px;}
   .entry .page{background:var(--primary-soft);color:var(--primary);padding:2px 8px;border-radius:8px;font-size:11px;white-space:nowrap;}
-  .entry .content{font-size:14.5px;white-space:pre-wrap;word-break:break-word;}
+  .entry .content{font-size:14.5px;white-space:pre-wrap;word-break:break-word;line-height:1.78;color:#39414f;}
   .entry .etags{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;}
-  .entry .mood{font-size:16px;}
-  .entry .del{position:absolute;top:10px;right:10px;color:var(--muted);cursor:pointer;font-size:13px;border:none;background:none;}
-  .entry .del:active{color:var(--danger);}
-  .entry .edit{position:absolute;top:10px;right:52px;color:var(--primary);cursor:pointer;font-size:13px;border:none;background:none;opacity:.75;}
-  .entry .edit:active{opacity:1;}
-  .entry .ehead{padding-right:70px;}
+  .entry .mood{font-size:15px;line-height:1;}
+  .entry .edit,.entry .del{
+    position:absolute;top:10px;height:22px;padding:0 8px;border-radius:8px;
+    font-family:inherit;font-size:11.5px;line-height:22px;border:none;cursor:pointer;
+    white-space:nowrap;transition:.15s;
+  }
+  .entry .edit{right:55px;color:#5b78b8;background:rgba(67,97,168,.09);}
+  .entry .edit:active{background:rgba(67,97,168,.18);}
+  .entry .del{right:10px;color:#b25546;background:rgba(217,83,79,.08);}
+  .entry .del:active{background:rgba(217,83,79,.18);color:#c0392b;}
+  .mk-tag{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap;line-height:1.5;}
   .sub-tag{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--primary-soft);color:var(--primary);white-space:nowrap;}
   .sub-tag.b{background:#fbe9e0;color:#c2643a;}
   .ans-my{color:var(--danger);}
@@ -232,14 +246,14 @@
       <div class="detail-head" id="detailHead"></div>
 
       <div class="section-title">
-        <h3>📖 书摘</h3>
+        <h3>📖 书摘<span class="cnt" id="exCnt"></span></h3>
         <button class="btn sm ghost" id="addExcerptBtn">+ 书摘</button>
       </div>
       <div class="filters" id="exMarkFilters"></div>
       <div id="excerptList"></div>
 
       <div class="section-title">
-        <h3>💭 感想</h3>
+        <h3>💭 感想<span class="cnt" id="rfCnt"></span></h3>
         <button class="btn sm ghost" id="addReflectionBtn">+ 感想</button>
       </div>
       <div id="reflectionList"></div>
@@ -1393,7 +1407,7 @@ function openDetail(id){
     ${b.note?`<div class="note">${esc(b.note)}</div>`:""}
     <div style="margin-top:12px;display:flex;gap:8px;">
       <button class="btn sm ghost" id="editBookBtn">编辑书籍</button>
-      <button class="btn sm danger" id="delBookBtn">删除</button>
+      <button class="btn sm soft-danger" id="delBookBtn">删除</button>
     </div>`;
   document.getElementById("editBookBtn").onclick=()=>openBookSheet(b.id);
   document.getElementById("delBookBtn").onclick=()=>{
@@ -1424,11 +1438,13 @@ function renderEntries(){
     </div>`).join("") : `<div class="empty" style="padding:24px">${exs.length? "没有这类标记的书摘" : "还没有书摘"}</div>`;
 
   const rfs=DB.reflections.filter(r=>r.bookId===id).sort((a,b)=>a.createdAt-b.createdAt);
+  const exCntEl=document.getElementById("exCnt"); if(exCntEl) exCntEl.textContent = exs.length ? exs.length : "";
+  const rfCntEl=document.getElementById("rfCnt"); if(rfCntEl) rfCntEl.textContent = rfs.length ? rfs.length : "";
   document.getElementById("reflectionList").innerHTML = rfs.length? rfs.map(r=>`
     <div class="entry" style="${markLeft(r.mark)}">
       <button class="edit" data-type="rf" data-id="${r.id}">编辑</button>
       <button class="del" data-type="rf" data-id="${r.id}">删除</button>
-      <div class="ehead"><span>${esc(r.date||"")}</span>${r.mood?`<span class="mood">${esc(r.mood)}</span>`:""}${markTagSpan(r.mark)?"　"+markTagSpan(r.mark):""}</div>
+      <div class="ehead"><span>${esc(r.date||"")}</span>${r.mood?`<span class="mood">${esc(r.mood)}</span>`:""}${markTagSpan(r.mark)}</div>
       <div class="content">${esc(r.content)}</div>
     </div>`).join("") : `<div class="empty" style="padding:24px">还没有感想</div>`;
 
@@ -1539,16 +1555,19 @@ function renderMarkSeg(id, keys, current){
 }
 function getMark(id){ const a=document.querySelector("#"+id+" .opt.active"); return a ? a.dataset.mark : ""; }
 function markLeft(mark){ return mark && MARKS[mark] ? `border-left:4px solid ${MARKS[mark].color};` : ""; }
-function markTagSpan(mark){ return mark && MARKS[mark] ? `<span style="color:${MARKS[mark].color};font-size:12px;font-weight:500;">${MARKS[mark].label}</span>` : ""; }
+function markTagSpan(mark){ return mark && MARKS[mark] ? `<span class="mk-tag" style="color:${MARKS[mark].color};background:${MARKS[mark].color}18;">${MARKS[mark].label}</span>` : ""; }
 function renderExMarkFilters(exs){
   const counts={all:exs.length, key:0, doubt:0, insight:0};
   exs.forEach(e=>{ if(e.mark && counts[e.mark]!==undefined) counts[e.mark]++; });
   const keys=["all","key","doubt","insight"];
   document.getElementById("exMarkFilters").innerHTML = keys.map(k=>{
     const label = k==="all" ? "全部" : MARKS[k].label;
-    const col = k==="all" ? "" : `style="color:${MARKS[k].color}"`;
-    const act = state.exMark===k ? " active" : "";
-    return `<span class="chip${act}" data-exmark="${k}" ${col}>${label} ${counts[k]}</span>`;
+    const act = state.exMark===k;
+    const col = k==="all" ? "" : MARKS[k].color;
+    let style = "";
+    if(col) style = act ? `style="background:${col};border-color:${col};color:#fff;"` : `style="color:${col}"`;
+    const zero = counts[k]===0 ? " zero" : "";
+    return `<span class="chip${act?" active":""}${zero}" data-exmark="${k}" ${style}>${label}<b class="n">${counts[k]}</b></span>`;
   }).join("");
   document.querySelectorAll("#exMarkFilters .chip").forEach(c=>{
     c.onclick=()=>{ state.exMark=c.dataset.exmark; renderEntries(); };
