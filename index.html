@@ -228,6 +228,16 @@
   .art-selsave{position:fixed;z-index:60;display:none;align-items:center;gap:5px;background:var(--primary);color:#fff;font-size:13px;font-weight:500;padding:8px 13px;border-radius:18px;box-shadow:0 8px 22px -6px rgba(20,24,33,.55);cursor:pointer;border:none;animation:selPop .12s ease;white-space:nowrap;}
   .art-selsave:active{transform:scale(.96);}
   @keyframes selPop{from{opacity:0;transform:translateY(5px) scale(.94);}to{opacity:1;transform:none;}}
+  .wb-summary{background:var(--card);border-radius:12px;padding:12px 14px;margin:8px 0 4px;box-shadow:0 1px 2px rgba(20,24,33,.04);}
+  .wb-stat{display:inline-block;font-size:13px;color:var(--muted);margin-right:14px;}
+  .wb-stat b{color:var(--text);font-size:15px;margin:0 2px;}
+  .wb-tags{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;}
+  .wb-tag{font-size:12px;color:var(--muted);background:var(--bg);border-radius:12px;padding:3px 10px;}
+  .wb-tag b{color:var(--primary);margin-left:2px;}
+  .wb-tag.muted{opacity:.6;}
+  .wb-group{margin-top:14px;}
+  .wb-group-h{font-size:13px;font-weight:600;color:var(--text);margin:0 2px 8px;display:flex;align-items:center;gap:6px;}
+  .wb-group-h .cnt{font-size:11px;font-weight:500;color:var(--muted);background:var(--bg);border-radius:10px;padding:1px 8px;}
 </style>
 </head>
 <body>
@@ -2061,17 +2071,47 @@ function renderArticleView(id){
   const tr=document.getElementById("articleTranslation");
   tr.textContent = a.translation||"";
   tr.classList.toggle("hidden", !(state.artShowTr && a.translation));
-  // 本篇文章词条
+  // 本篇文章词条（生词本自动汇总）
   const vs=vocabOfArticle(id).sort((x,y)=>y.createdAt-x.createdAt);
   document.getElementById("artVocabCnt").textContent = vs.length ? ` ${vs.length}` : "";
-  document.getElementById("articleVocabList").innerHTML = vs.length? vs.map(v=>`
+  const allCount = DB.en.vocab.length;
+  // 标签分布
+  const tagCount={};
+  vs.forEach(v=>{ (v.tags||"").split(",").map(t=>t.trim()).filter(Boolean).forEach(t=>{ tagCount[t]=(tagCount[t]||0)+1; }); });
+  const tagChips = Object.keys(tagCount).sort((a,b)=>tagCount[b]-tagCount[a])
+    .map(t=>`<span class="wb-tag">${esc(t)} <b>${tagCount[t]}</b></span>`).join("")
+    || `<span class="wb-tag muted">暂无标签</span>`;
+  const summary = `
+    <div class="wb-summary">
+      <div class="wb-stat">本篇 <b>${vs.length}</b> 词</div>
+      <div class="wb-stat">全书 <b>${allCount}</b> 词</div>
+      <div class="wb-tags">${tagChips}</div>
+    </div>`;
+  // 按（首个）标签自动分组汇总
+  const groups={};
+  vs.forEach(v=>{
+    const ts=(v.tags||"").split(",").map(t=>t.trim()).filter(Boolean);
+    const k = ts.length ? ts[0] : "未分类";
+    (groups[k]=groups[k]||[]).push(v);
+  });
+  const gkeys = Object.keys(groups).sort((a,b)=>{
+    if(a==="未分类") return 1; if(b==="未分类") return -1;
+    return groups[b].length-groups[a].length;
+  });
+  const cardHtml = v=>`
     <div class="entry">
       <button class="edit" data-type="enVb" data-id="${v.id}">编辑</button>
       <button class="del" data-type="enVb" data-id="${v.id}">删除</button>
-      <div class="ehead"><span class="page">📘</span>${v.tags?tagsHtml(v.tags):""}</div>
+      <div class="ehead"><span class="page">📘</span></div>
       <div class="content"><b>${esc(v.word)}</b>${v.meaning?` — ${esc(v.meaning)}`:""}</div>
       ${v.example?`<div class="content" style="color:var(--muted);font-size:13px;margin-top:4px">${esc(v.example)}</div>`:""}
+    </div>`;
+  const listHtml = vs.length ? gkeys.map(k=>`
+    <div class="wb-group">
+      <div class="wb-group-h">${esc(k)} <span class="cnt">${groups[k].length}</span></div>
+      ${groups[k].map(cardHtml).join("")}
     </div>`).join("") : `<div class="art-empty">还没有积累单词/短语，点右上角「+ 词条」边读边记</div>`;
+  document.getElementById("articleVocabList").innerHTML = summary + listHtml;
   document.querySelectorAll("#articleVocabList .del").forEach(btn=>{
     btn.onclick=()=>{
       if(confirm("删除这条词条？")){
