@@ -204,6 +204,30 @@
     padding:9px 18px;border-radius:20px;font-size:13px;z-index:60;opacity:0;transition:.25s;pointer-events:none;}
   .toast.show{opacity:1;}
   .hidden{display:none!important;}
+
+  /* ---- 英语文章 ---- */
+  .art-card{background:var(--card);border-radius:14px;padding:14px 15px 14px 17px;margin-bottom:10px;box-shadow:0 1px 2px rgba(20,24,33,.04),0 8px 20px -14px rgba(20,24,33,.32);position:relative;border-left:3px solid var(--muted);cursor:pointer;transition:box-shadow .18s;}
+  .art-card:hover{box-shadow:0 2px 4px rgba(20,24,33,.06),0 12px 26px -14px rgba(20,24,33,.4);}
+  .art-card .ehead{display:flex;justify-content:flex-start;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:8px;padding-right:102px;min-height:22px;}
+  .art-cat{padding:2px 9px;border-radius:8px;font-size:12px;font-weight:600;}
+  .art-status{padding:2px 9px;border-radius:8px;font-size:11px;background:var(--bg);color:var(--muted);}
+  .art-status.在读{background:rgba(55,138,221,.14);color:#2f6fb0;}
+  .art-status.已读{background:rgba(99,153,34,.16);color:#4f7d1c;}
+  .art-status.未读{background:rgba(136,135,128,.16);color:#6f6e67;}
+  .art-date{margin-left:auto;font-size:11px;color:var(--muted);}
+  .art-title{font-size:15.5px;font-weight:600;line-height:1.45;color:var(--text);padding-right:8px;}
+  .art-foot{margin-top:9px;font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;}
+  .art-foot .k{color:#c0392b;font-weight:600;}
+
+  #articleView{background:var(--bg);min-height:100%;}
+  .art-toolbar{display:flex;align-items:center;gap:10px;margin:12px 0 6px;flex-wrap:wrap;}
+  .art-content{font-size:16px;line-height:1.95;color:var(--text);white-space:pre-wrap;word-break:break-word;background:var(--card);border-radius:12px;padding:16px;margin:10px 0;box-shadow:0 1px 2px rgba(20,24,33,.04);}
+  .art-translation{font-size:14.5px;line-height:1.9;color:#55606e;white-space:pre-wrap;word-break:break-word;background:var(--card);border-left:3px solid var(--primary);border-radius:0 12px 12px 0;padding:14px 16px;margin:10px 0;}
+  .art-empty{color:var(--muted);font-size:13px;padding:14px 2px;}
+  .lnk-art{display:inline-block;font-size:11px;color:var(--muted);background:var(--bg);border-radius:7px;padding:1px 7px;margin-left:4px;}
+  .art-selsave{position:fixed;z-index:60;display:none;align-items:center;gap:5px;background:var(--primary);color:#fff;font-size:13px;font-weight:500;padding:8px 13px;border-radius:18px;box-shadow:0 8px 22px -6px rgba(20,24,33,.55);cursor:pointer;border:none;animation:selPop .12s ease;white-space:nowrap;}
+  .art-selsave:active{transform:scale(.96);}
+  @keyframes selPop{from{opacity:0;transform:translateY(5px) scale(.94);}to{opacity:1;transform:none;}}
 </style>
 </head>
 <body>
@@ -283,6 +307,13 @@
     </div>
     <main>
       <div class="section-title">
+        <h3>📰 英文文章<span class="cnt" id="enArtCnt"></span></h3>
+        <button class="btn sm ghost" id="addArticleBtn">+ 文章</button>
+      </div>
+      <div class="filters" id="enCatFilters"></div>
+      <div id="articleList"></div>
+
+      <div class="section-title">
         <h3>✅ 学习打卡</h3>
         <button class="btn sm ghost" id="enAddCheckinBtn">+ 打卡</button>
       </div>
@@ -293,6 +324,30 @@
       </div>
       <div id="enVocabList"></div>
     </main>
+  </div>
+
+  <!-- 英语：文章阅读视图 -->
+  <div id="articleView" class="hidden">
+    <div style="padding:14px 16px 0">
+      <div class="back" id="artBackBtn">← 返回英语学习</div>
+      <div class="detail-head" id="articleHead"></div>
+      <div class="art-toolbar">
+        <div class="seg" id="artStatusSeg">
+          <div class="opt" data-v="未读">未读</div>
+          <div class="opt" data-v="在读">在读</div>
+          <div class="opt" data-v="已读">已读</div>
+        </div>
+        <button class="btn sm ghost" id="artToggleTr">显示译文</button>
+        <button class="btn sm" id="artAddVocabBtn">+ 词条</button>
+      </div>
+      <div class="art-content" id="articleContent"></div>
+      <div class="art-translation hidden" id="articleTranslation"></div>
+      <div class="section-title">
+        <h3>📘 本篇文章积累的单词/短语/例句<span class="cnt" id="artVocabCnt"></span></h3>
+      </div>
+      <div id="articleVocabList"></div>
+    </div>
+    <button class="art-selsave" id="artSelSave" type="button">＋ 存为词条</button>
   </div>
 
   <!-- 考试通用视图（中项备考 / 初级会计） -->
@@ -511,9 +566,47 @@
     <div class="field"><label>释义</label><input id="enVbMeaning" placeholder="意外发现美好事物的能力"></div>
     <div class="field"><label>例句</label><textarea id="enVbExample" placeholder="A fortunate stroke of serendipity."></textarea></div>
     <div class="field"><label>标签（逗号分隔）</label><input id="enVbTags" placeholder="词汇, 积极"></div>
+    <div class="field">
+      <label>关联文章（可选）</label>
+      <select id="enVbArticle"><option value="">— 不关联 —</option></select>
+    </div>
     <div class="sheet-actions">
       <button class="btn ghost" id="enVbCancel">取消</button>
       <button class="btn" id="enVbSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 英语：文章弹窗 -->
+<div class="mask" id="enArticleMask">
+  <div class="sheet">
+    <h2 id="enArticleSheetTitle">添加文章</h2>
+    <div class="field"><label>标题 *</label><input id="enArtTitle" placeholder="文章标题"></div>
+    <div class="row2">
+      <div class="field">
+        <label>文章类型 / 分类</label>
+        <select id="enArtCat"></select>
+      </div>
+      <div class="field">
+        <label>难度</label>
+        <select id="enArtLevel"></select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>日期</label><input id="enArtDate" type="date"></div>
+      <div class="field">
+        <label>状态</label>
+        <select id="enArtStatus">
+          <option>未读</option><option>在读</option><option>已读</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>英文正文 *</label><textarea id="enArtContent" style="min-height:140px" placeholder="粘贴或输入英文文章…"></textarea></div>
+    <div class="field"><label>中文译文（可选）</label><textarea id="enArtTr" style="min-height:90px" placeholder="对应中文翻译…"></textarea></div>
+    <div class="field"><label>备注</label><textarea id="enArtNote" placeholder="来源、感想…"></textarea></div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="enArtCancel">取消</button>
+      <button class="btn" id="enArtSave">保存</button>
     </div>
   </div>
 </div>
@@ -660,9 +753,26 @@ const EXAM_DEFS = {
     examNote:"初级会计职称每年 5 月开考（通常 5 月第二个周六），设置后可看到倒计时。" }
 };
 
+/* ---------- 英语文章：分类与难度 ---------- */
+const EN_CATS = [
+  {label:"文化", color:"#E24B4A"},
+  {label:"社会", color:"#E8923A"},
+  {label:"生活", color:"#D9A441"},
+  {label:"科技", color:"#378ADD"},
+  {label:"商业", color:"#6B5BD6"},
+  {label:"教育", color:"#639922"},
+  {label:"其他", color:"#888780"}
+];
+const EN_LEVELS = ["四级","六级","专四","专八","雅思","托福","考研","其他"];
+const EN_STATUS = ["未读","在读","已读"];
+function enCatColor(c){ const f=EN_CATS.find(x=>x.label===c); return f?f.color:"#888780"; }
+function enCatHas(c){ return EN_CATS.some(x=>x.label===c); }
+function articleTitle(id){ const a=DB.en.articles.find(x=>x.id===id); return a?a.title:""; }
+function vocabOfArticle(id){ return DB.en.vocab.filter(v=>v.articleId===id); }
+
 let DB = {
   books:[], excerpts:[], reflections:[], essays:[],
-  en:{ checkins:[], vocab:[] },
+  en:{ checkins:[], vocab:[], articles:[] },
   exams:{
     pmp:{ exam:null, checkins:[], notes:[], mistakes:[], scores:[] },
     kj:{ exam:null, checkins:[], notes:[], mistakes:[], scores:[] }
@@ -671,6 +781,7 @@ let DB = {
 let currentModule = "reading";
 let state = { status:"all", dir:"all", search:"", curBook:null, editingBook:null, rating:0,
   bkAutoAuthor:"", bkAutoDir:"", editing:null, exMark:"all",
+  enCat:"all", enArtSearch:"", curArticle:null, artShowTr:false,
   enType:"all", enSearch:"", examSub:"all", examSearch:"", essaySearch:"" };
 
 /* ---------- 存储 ---------- */
@@ -683,9 +794,10 @@ function load(){
       DB.excerpts = d.excerpts||[];
       DB.reflections = d.reflections||[];
       DB.essays = d.essays||[];
-      DB.en = d.en||{checkins:[],vocab:[]};
+      DB.en = d.en||{checkins:[],vocab:[],articles:[]};
       DB.en.checkins = DB.en.checkins||[];
       DB.en.vocab = DB.en.vocab||[];
+      DB.en.articles = DB.en.articles||[];
       DB.exams = d.exams||{pmp:{exam:null,checkins:[],notes:[],mistakes:[],scores:[]},kj:{exam:null,checkins:[],notes:[],mistakes:[],scores:[]}};
       // 兼容旧结构：旧版把中项数据存在 DB.pmp
       if(d.pmp){
@@ -727,6 +839,16 @@ function seed(){
     content:"把一天里突然冒出来的念头记下来，比事后回想靠谱得多。三色标记帮我把「值得回看的重点」和「一时的情绪」分开。",
     mark:"insight", createdAt:Date.now()
   });
+  const aid = uid();
+  DB.en.articles.push({
+    id:aid, title:"老国货逆袭！老外迷上搪瓷盆、千层底？", category:"文化", level:"六级",
+    date:today(), status:"未读",
+    content:"Once mocked as outdated, traditional Chinese enamel basins and layered-sole cloth shoes are making a surprising comeback. Young shoppers, and even overseas fans, are embracing these 'retro' items not just for their practicality, but as a statement of cultural confidence.",
+    translation:"曾被嘲笑过时的中国传统搪瓷盆与千层底布鞋，正迎来出人意料的回潮。年轻消费者乃至海外粉丝追捧这些「复古」物件，不只是图实用，更是一种文化自信的表达。",
+    note:"选自每日英语类素材，可积累地道表达。", createdAt:Date.now()
+  });
+  DB.en.vocab.push({id:uid(), word:"comeback", meaning:"回潮；东山再起", example:"Traditional items are making a surprising comeback.", tags:"文化,趋势", articleId:aid, createdAt:Date.now()});
+  DB.en.vocab.push({id:uid(), word:"cultural confidence", meaning:"文化自信", example:"a statement of cultural confidence", tags:"文化", articleId:aid, createdAt:Date.now()});
 }
 
 /* ---------- 工具 ---------- */
@@ -1321,6 +1443,10 @@ function switchModule(m){
   document.getElementById("enView").classList.toggle("hidden", m!=="en");
   document.getElementById("examView").classList.toggle("hidden", !(m==="pmp"||m==="kj"));
   document.getElementById("essayView").classList.toggle("hidden", m!=="essay");
+  if(m!=="en"){
+    state.curArticle=null; state.artShowTr=false;
+    document.getElementById("articleView").classList.add("hidden");
+  }
   window.scrollTo(0,0);
   if(m==="reading") renderAll();
   else if(m==="en") renderEn();
@@ -1520,6 +1646,7 @@ const EDIT_OPENERS = {
   essay:  id=>openEssaySheet(id),
   enCk:   id=>openEnCheckin(id),
   enVb:   id=>openEnVocab(id),
+  enArt:  id=>openArticleSheet(id),
   examCk: id=>openExamCheckin(id),
   examNt: id=>openExamNote(id),
   examMs: id=>openExamMistake(id),
@@ -1708,11 +1835,41 @@ function renderEn(){
     <div class="stat"><div class="num">${days}</div><div class="lbl">累计天数</div></div>
     <div class="stat reading"><div class="num">${recent}</div><div class="lbl">近7天分钟</div></div>
     <div class="stat done"><div class="num">${streak}</div><div class="lbl">连续天数</div></div>
-    <div class="stat want"><div class="num">${en.vocab.length}</div><div class="lbl">词条数</div></div>`;
+    <div class="stat want"><div class="num">${en.articles.length}</div><div class="lbl">文章数</div></div>
+    <div class="stat"><div class="num">${en.vocab.length}</div><div class="lbl">词条数</div></div>`;
 
+  // 文章分类筛选
+  renderEnCatFilters();
+
+  // 文章列表
+  let arts=en.articles.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  if(state.enCat!=="all") arts=arts.filter(a=>a.category===state.enCat);
+  const q=state.enSearch.trim().toLowerCase();
+  if(q) arts=arts.filter(a=>(a.title||"").toLowerCase().includes(q)||(a.category||"").toLowerCase().includes(q)||(a.content||"").toLowerCase().includes(q));
+  document.getElementById("enArtCnt").textContent = arts.length ? ` ${arts.length}` : "";
+  document.getElementById("articleList").innerHTML = arts.length? arts.map(a=>{
+    const vn=vocabOfArticle(a.id).length;
+    return `
+    <div class="art-card" data-id="${a.id}" style="border-left-color:${enCatColor(a.category)}">
+      <button class="edit" data-type="enArt" data-id="${a.id}">编辑</button>
+      <button class="del" data-type="enArt" data-id="${a.id}">删除</button>
+      <div class="ehead">
+        <span class="art-cat" style="color:${enCatColor(a.category)};background:${enCatColor(a.category)}15">${esc(a.category)}</span>
+        ${a.level?`<span class="sub-tag">${esc(a.level)}</span>`:""}
+        <span class="art-status ${a.status||"未读"}">${esc(a.status||"未读")}</span>
+        <span class="art-date">${esc(a.date||"")}</span>
+      </div>
+      <div class="art-title">${esc(a.title)}</div>
+      <div class="art-foot"><span><span class="k">${vn}</span> 个知识点</span>${a.translation?`<span>含译文</span>`:""}</div>
+    </div>`;
+  }).join("") : `<div class="empty" style="padding:24px 4px">还没有文章，点右上角「+ 文章」添加一篇，边读边积累单词</div>`;
+  document.querySelectorAll("#articleList .art-card").forEach(card=>{
+    card.onclick=e=>{ if(e.target.closest(".edit,.del")) return; openArticleView(card.dataset.id); };
+  });
+
+  // 学习打卡
   let cs=en.checkins.slice().sort((a,b)=>b.date.localeCompare(a.date));
   if(state.enType!=="all") cs=cs.filter(c=>c.type===state.enType);
-  const q=state.enSearch.trim().toLowerCase();
   if(q) cs=cs.filter(c=>(c.note||"").toLowerCase().includes(q)||c.type.toLowerCase().includes(q));
   document.getElementById("enCheckinList").innerHTML = cs.length? cs.map(c=>`
     <div class="entry">
@@ -1722,12 +1879,13 @@ function renderEn(){
       ${c.note?`<div class="content">${esc(c.note)}</div>`:""}
     </div>`).join("") : `<div class="empty" style="padding:24px">还没有打卡</div>`;
 
+  // 积累本
   const vs=en.vocab.slice().sort((a,b)=>b.createdAt-a.createdAt);
   document.getElementById("enVocabList").innerHTML = vs.length? vs.map(v=>`
     <div class="entry">
       <button class="edit" data-type="enVb" data-id="${v.id}">编辑</button>
       <button class="del" data-type="enVb" data-id="${v.id}">删除</button>
-      <div class="ehead"><span class="page">📘</span>${v.tags?tagsHtml(v.tags):""}</div>
+      <div class="ehead"><span class="page">📘</span>${v.tags?tagsHtml(v.tags):""}${v.articleId?`<span class="sub-tag lnk-art">📰 ${esc(articleTitle(v.articleId))}</span>`:""}</div>
       <div class="content"><b>${esc(v.word)}</b>${v.meaning?` — ${esc(v.meaning)}`:""}</div>
       ${v.example?`<div class="content" style="color:var(--muted);font-size:13px;margin-top:4px">${esc(v.example)}</div>`:""}
     </div>`).join("") : `<div class="empty" style="padding:24px">积累本还是空的</div>`;
@@ -1737,12 +1895,22 @@ function renderEn(){
       const {type,id:eid}=btn.dataset;
       if(confirm("删除这条记录？")){
         if(type==="enCk") DB.en.checkins=DB.en.checkins.filter(x=>x.id!==eid);
-        else DB.en.vocab=DB.en.vocab.filter(x=>x.id!==eid);
+        else if(type==="enVb") DB.en.vocab=DB.en.vocab.filter(x=>x.id!==eid);
+        else if(type==="enArt") DB.en.articles=DB.en.articles.filter(x=>x.id!==eid);
         save(); renderEn(); toast("已删除");
       }
     };
   });
   bindEntryEdit("#enView");
+}
+function renderEnCatFilters(){
+  const cats=["all",...EN_CATS.map(c=>c.label)];
+  document.getElementById("enCatFilters").innerHTML = cats.map(c=>{
+    const label = c==="all" ? "全部" : c;
+    const col = c==="all" ? "" : `style="color:${enCatColor(c)}"`;
+    const act = state.enCat===c ? " active" : "";
+    return `<span class="chip${act}" data-en-cat="${c}" ${col}>${label}</span>`;
+  }).join("");
 }
 function openEnCheckin(id){
   id = normRecId(id);
@@ -1783,6 +1951,10 @@ function openEnVocab(id){
   document.getElementById("enVbMeaning").value = v ? (v.meaning||"") : "";
   document.getElementById("enVbExample").value = v ? (v.example||"") : "";
   document.getElementById("enVbTags").value = v ? (v.tags||"") : "";
+  // 关联文章下拉
+  const sel=document.getElementById("enVbArticle");
+  sel.innerHTML = `<option value="">— 不关联 —</option>` + DB.en.articles.map(a=>`<option value="${a.id}">${esc(a.title)}</option>`).join("");
+  sel.value = v ? (v.articleId||"") : (state.curArticle||"");
   showMask("enVocabMask");
 }
 function saveEnVocab(){
@@ -1792,18 +1964,170 @@ function saveEnVocab(){
     word,
     meaning:document.getElementById("enVbMeaning").value.trim(),
     example:document.getElementById("enVbExample").value.trim(),
-    tags:document.getElementById("enVbTags").value.trim()
+    tags:document.getElementById("enVbTags").value.trim(),
+    articleId:document.getElementById("enVbArticle").value||null
   };
   const editing = state.editing && state.editing.kind==="enVb" ? state.editing.id : null;
+  const fromArticle = !!state.curArticle;
   if(editing){
     const v=DB.en.vocab.find(x=>x.id===editing);
     if(v) Object.assign(v, data, {updatedAt:Date.now()});
     state.editing=null;
-    save(); hideMask("enVocabMask"); renderEn(); toast("已更新");
+    save(); hideMask("enVocabMask");
+    if(fromArticle) renderArticleView(state.curArticle);
+    renderEn(); toast("已更新");
     return;
   }
   DB.en.vocab.push({id:uid(), ...data, createdAt:Date.now()});
-  save(); hideMask("enVocabMask"); renderEn(); toast("已添加词条");
+  save(); hideMask("enVocabMask");
+  if(fromArticle) renderArticleView(state.curArticle);
+  renderEn(); toast("已添加词条");
+}
+
+/* ---------- 英语文章 ---------- */
+function openArticleSheet(id){
+  id = normRecId(id);
+  state.editing = id ? {kind:"enArt", id} : null;
+  const a = id ? DB.en.articles.find(x=>x.id===id) : null;
+  setSheetTitle("enArticleMask", !!a, "添加文章", "编辑文章");
+  const catSel=document.getElementById("enArtCat");
+  catSel.innerHTML = EN_CATS.map(c=>`<option value="${c.label}">${c.label}</option>`).join("");
+  catSel.value = a ? (a.category||"文化") : "文化";
+  const lvlSel=document.getElementById("enArtLevel");
+  lvlSel.innerHTML = EN_LEVELS.map(l=>`<option>${l}</option>`).join("");
+  lvlSel.value = a ? (a.level||"六级") : "六级";
+  document.getElementById("enArtTitle").value = a ? (a.title||"") : "";
+  document.getElementById("enArtDate").value = a ? (a.date||today()) : today();
+  document.getElementById("enArtStatus").value = a ? (a.status||"未读") : "未读";
+  document.getElementById("enArtContent").value = a ? (a.content||"") : "";
+  document.getElementById("enArtTr").value = a ? (a.translation||"") : "";
+  document.getElementById("enArtNote").value = a ? (a.note||"") : "";
+  showMask("enArticleMask");
+}
+function saveArticle(){
+  const title=document.getElementById("enArtTitle").value.trim();
+  if(!title){ toast("请填写文章标题"); return; }
+  const data={
+    title,
+    category:document.getElementById("enArtCat").value,
+    level:document.getElementById("enArtLevel").value,
+    date:document.getElementById("enArtDate").value||today(),
+    status:document.getElementById("enArtStatus").value,
+    content:document.getElementById("enArtContent").value.trim(),
+    translation:document.getElementById("enArtTr").value.trim(),
+    note:document.getElementById("enArtNote").value.trim()
+  };
+  const editing = state.editing && state.editing.kind==="enArt" ? state.editing.id : null;
+  if(editing){
+    const a=DB.en.articles.find(x=>x.id===editing);
+    if(a) Object.assign(a, data, {updatedAt:Date.now()});
+    state.editing=null;
+    save(); hideMask("enArticleMask"); renderEn(); toast("已更新");
+    return;
+  }
+  DB.en.articles.push({id:uid(), ...data, createdAt:Date.now()});
+  save(); hideMask("enArticleMask"); renderEn(); toast("已添加文章");
+}
+
+/* ---------- 文章阅读视图 ---------- */
+function openArticleView(id){
+  state.curArticle = id;
+  document.getElementById("enView").classList.add("hidden");
+  document.getElementById("articleView").classList.remove("hidden");
+  window.scrollTo(0,0);
+  renderArticleView(id);
+}
+function backArticle(){
+  state.curArticle=null; state.artShowTr=false;
+  document.getElementById("articleView").classList.add("hidden");
+  document.getElementById("enView").classList.remove("hidden");
+  renderEn();
+}
+function renderArticleView(id){
+  const a=DB.en.articles.find(x=>x.id===id);
+  if(!a) return backArticle();
+  const cat=enCatColor(a.category);
+  document.getElementById("articleHead").innerHTML=`
+    <h2 style="margin:2px 0 4px">${esc(a.title)}</h2>
+    <div class="note">
+      <span style="color:${cat};font-weight:600">${esc(a.category)}</span>
+      ${a.level?` · ${esc(a.level)}`:""} · ${esc(a.date||"")}
+      ${a.note?`<div style="margin-top:6px">${esc(a.note)}</div>`:""}
+    </div>`;
+  document.querySelectorAll("#artStatusSeg .opt").forEach(o=>o.classList.toggle("active", o.dataset.v===(a.status||"未读")));
+  const trBtn=document.getElementById("artToggleTr");
+  trBtn.textContent = state.artShowTr ? "隐藏译文" : "显示译文";
+  document.getElementById("articleContent").textContent = a.content||"";
+  const tr=document.getElementById("articleTranslation");
+  tr.textContent = a.translation||"";
+  tr.classList.toggle("hidden", !(state.artShowTr && a.translation));
+  // 本篇文章词条
+  const vs=vocabOfArticle(id).sort((x,y)=>y.createdAt-x.createdAt);
+  document.getElementById("artVocabCnt").textContent = vs.length ? ` ${vs.length}` : "";
+  document.getElementById("articleVocabList").innerHTML = vs.length? vs.map(v=>`
+    <div class="entry">
+      <button class="edit" data-type="enVb" data-id="${v.id}">编辑</button>
+      <button class="del" data-type="enVb" data-id="${v.id}">删除</button>
+      <div class="ehead"><span class="page">📘</span>${v.tags?tagsHtml(v.tags):""}</div>
+      <div class="content"><b>${esc(v.word)}</b>${v.meaning?` — ${esc(v.meaning)}`:""}</div>
+      ${v.example?`<div class="content" style="color:var(--muted);font-size:13px;margin-top:4px">${esc(v.example)}</div>`:""}
+    </div>`).join("") : `<div class="art-empty">还没有积累单词/短语，点右上角「+ 词条」边读边记</div>`;
+  document.querySelectorAll("#articleVocabList .del").forEach(btn=>{
+    btn.onclick=()=>{
+      if(confirm("删除这条词条？")){
+        DB.en.vocab=DB.en.vocab.filter(x=>x.id!==btn.dataset.id);
+        save(); renderArticleView(id); renderEn(); toast("已删除");
+      }
+    };
+  });
+  bindEntryEdit("#articleView");
+}
+
+// 划词即存：在文章正文选中单词/短语后浮出「存为词条」
+function setupArticleSelection(){
+  const content=document.getElementById("articleContent");
+  const btn=document.getElementById("artSelSave");
+  if(!content || !btn) return;
+  let curText="";
+  function hide(){ btn.style.display="none"; curText=""; }
+  function place(rect){
+    btn.style.display="inline-flex";
+    const bw=btn.offsetWidth||140, bh=btn.offsetHeight||34;
+    let left=rect.left+rect.width/2-bw/2;
+    left=Math.max(8, Math.min(left, window.innerWidth-bw-8));
+    let top=rect.top-bh-8;
+    if(top<8) top=rect.bottom+8;
+    btn.style.left=Math.round(left)+"px";
+    btn.style.top=Math.round(top)+"px";
+  }
+  function showForSelection(){
+    const sel=window.getSelection();
+    if(!sel || sel.isCollapsed || sel.rangeCount===0){ hide(); return; }
+    const text=sel.toString().replace(/\s+/g," ").trim();
+    if(!text){ hide(); return; }
+    const range=sel.getRangeAt(0);
+    if(!content.contains(range.commonAncestorContainer)){ hide(); return; }
+    curText=text;
+    place(range.getBoundingClientRect());
+  }
+  content.addEventListener("mouseup", ()=>setTimeout(showForSelection,10));
+  content.addEventListener("touchend", ()=>setTimeout(showForSelection,10));
+  document.addEventListener("selectionchange", ()=>{
+    const sel=window.getSelection();
+    if(!sel || sel.isCollapsed) hide();
+  });
+  window.addEventListener("scroll", ()=>{ if(btn.style.display!=="none") hide(); }, true);
+  // 防止点击按钮时清空选区（保留 curText 已足够，这里额外防护）
+  btn.addEventListener("mousedown", e=>e.preventDefault());
+  btn.addEventListener("click", ()=>{
+    if(!curText){ hide(); return; }
+    const word=curText;
+    hide();
+    openEnVocab(null);
+    document.getElementById("enVbWord").value=word;
+    if(state.curArticle) document.getElementById("enVbArticle").value=state.curArticle;
+    setTimeout(()=>{ try{ document.getElementById("enVbMeaning").focus(); }catch(e){} },50);
+  });
 }
 
 /* ---------- 考试（中项 / 初级会计通用） ---------- */
@@ -2086,7 +2410,7 @@ function importJSON(file){
       DB.excerpts=[...DB.excerpts,...(data.excerpts||[])];
       DB.reflections=[...DB.reflections,...(data.reflections||[])];
       DB.essays=[...DB.essays,...(data.essays||[])];
-      const en=data.en||{}; DB.en.checkins=[...DB.en.checkins,...(en.checkins||[])]; DB.en.vocab=[...DB.en.vocab,...(en.vocab||[])];
+      const en=data.en||{}; DB.en.checkins=[...DB.en.checkins,...(en.checkins||[])]; DB.en.vocab=[...DB.en.vocab,...(en.vocab||[])]; DB.en.articles=[...DB.en.articles,...(en.articles||[])];
       const exams=data.exams||{};
       const oldPmp=data.pmp||{};
       ["pmp","kj"].forEach(k=>{
@@ -2122,6 +2446,7 @@ function bind(){
       else openBookSheet(null);
     } else if(currentModule==="en"){
       openAddPicker("英语学习 · 添加",[
+        {label:"📰 英文文章", onClick:openArticleSheet},
         {label:"✅ 学习打卡", onClick:openEnCheckin},
         {label:"📘 词条积累", onClick:openEnVocab}
       ]);
@@ -2191,6 +2516,25 @@ function bind(){
     clearTimeout(est); est=setTimeout(()=>{ state.enSearch=e.target.value; renderEn(); },200);
   };
 
+  // 英语：文章
+  document.getElementById("addArticleBtn").onclick=()=>openArticleSheet(null);
+  document.getElementById("enArtCancel").onclick=()=>hideMask("enArticleMask");
+  document.getElementById("enArtSave").onclick=saveArticle;
+  document.getElementById("enCatFilters").addEventListener("click", e=>{
+    const chip=e.target.closest(".chip"); if(!chip) return;
+    state.enCat=chip.dataset.enCat; renderEn();
+  });
+  // 文章阅读视图
+  document.getElementById("artBackBtn").onclick=backArticle;
+  document.getElementById("artAddVocabBtn").onclick=()=>openEnVocab(null);
+  document.getElementById("artToggleTr").onclick=()=>{ state.artShowTr=!state.artShowTr; renderArticleView(state.curArticle); };
+  document.querySelectorAll("#artStatusSeg .opt").forEach(o=>o.onclick=()=>{
+    const a=DB.en.articles.find(x=>x.id===state.curArticle); if(!a) return;
+    a.status=o.dataset.v; save();
+    document.querySelectorAll("#artStatusSeg .opt").forEach(x=>x.classList.toggle("active", x.dataset.v===a.status));
+    renderEn();
+  });
+
   // 考试（中项 / 初级会计通用）
   document.getElementById("examAddCheckinBtn").onclick=()=>openExamCheckin(null);
   document.getElementById("examAddNoteBtn").onclick=()=>openExamNote(null);
@@ -2218,7 +2562,7 @@ function bind(){
       document.getElementById("dataStats").innerHTML=
         `阅读：${DB.books.length} 本 · ${DB.excerpts.length} 书摘 · ${DB.reflections.length} 感想<br>`+
         `随笔：${DB.essays.length} 篇<br>`+
-        `英语：${DB.en.checkins.length} 打卡 · ${DB.en.vocab.length} 词条<br>`+
+        `英语：${DB.en.checkins.length} 打卡 · ${DB.en.articles.length} 文章 · ${DB.en.vocab.length} 词条<br>`+
         `中项备考：${DB.exams.pmp.checkins.length} 打卡 · ${DB.exams.pmp.notes.length} 知识点 · ${DB.exams.pmp.mistakes.length} 错题 · ${DB.exams.pmp.scores.length} 成绩<br>`+
         `初级会计：${DB.exams.kj.checkins.length} 打卡 · ${DB.exams.kj.notes.length} 知识点 · ${DB.exams.kj.mistakes.length} 错题 · ${DB.exams.kj.scores.length} 成绩`;
       showMask("dataMask");
@@ -2235,7 +2579,7 @@ function bind(){
   document.getElementById("addPickCancel").onclick=()=>hideMask("addPickMask");
 
   // 点击遮罩空白处关闭
-  ["bookMask","excerptMask","refMask","essayMask","enCheckinMask","enVocabMask","examExamMask",
+  ["bookMask","excerptMask","refMask","essayMask","enCheckinMask","enVocabMask","enArticleMask","examExamMask",
    "examCheckinMask","examNoteMask","examMistakeMask","examScoreMask","dataMask","addPickMask"].forEach(id=>{
     document.getElementById(id).onclick=e=>{ if(e.target.id===id) hideMask(id); };
   });
@@ -2249,6 +2593,9 @@ function bind(){
     document.querySelectorAll(".entry.reveal").forEach(c=>c.classList.remove("reveal"));
     if(!open) card.classList.add("reveal");
   });
+
+  // 文章阅读页：划词即存词条
+  setupArticleSelection();
 }
 
 /* ---------- 启动 ---------- */
