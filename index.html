@@ -209,6 +209,15 @@
   .art-card{background:var(--card);border-radius:14px;padding:14px 15px 14px 17px;margin-bottom:10px;box-shadow:0 1px 2px rgba(20,24,33,.04),0 8px 20px -14px rgba(20,24,33,.32);position:relative;border-left:3px solid var(--muted);cursor:pointer;transition:box-shadow .18s;}
   .art-card:hover{box-shadow:0 2px 4px rgba(20,24,33,.06),0 12px 26px -14px rgba(20,24,33,.4);}
   .art-card .ehead{display:flex;justify-content:flex-start;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:8px;padding-right:102px;min-height:22px;}
+  .art-card .edit,.art-card .del{
+    position:absolute;top:10px;z-index:2;height:22px;padding:0 9px;border-radius:8px;
+    font-family:inherit;font-size:11.5px;line-height:22px;border:none;cursor:pointer;
+    white-space:nowrap;opacity:.8;transition:background .15s,color .15s,opacity .15s;
+  }
+  .art-card .edit{right:55px;color:#5b78b8;background:rgba(67,97,168,.09);}
+  .art-card .del{right:10px;color:#b25546;background:rgba(217,83,79,.08);}
+  .art-card .edit:hover,.art-card .edit:active{opacity:1;background:rgba(67,97,168,.2);}
+  .art-card .del:hover,.art-card .del:active{opacity:1;background:rgba(217,83,79,.18);color:#c0392b;}
   .art-cat{padding:2px 9px;border-radius:8px;font-size:12px;font-weight:600;}
   .art-status{padding:2px 9px;border-radius:8px;font-size:11px;background:var(--bg);color:var(--muted);}
   .art-status.在读{background:rgba(55,138,221,.14);color:#2f6fb0;}
@@ -1861,8 +1870,6 @@ function renderEn(){
     const vn=vocabOfArticle(a.id).length;
     return `
     <div class="art-card" data-id="${a.id}" style="border-left-color:${enCatColor(a.category)}">
-      <button class="edit" data-type="enArt" data-id="${a.id}">编辑</button>
-      <button class="del" data-type="enArt" data-id="${a.id}">删除</button>
       <div class="ehead">
         <span class="art-cat" style="color:${enCatColor(a.category)};background:${enCatColor(a.category)}15">${esc(a.category)}</span>
         ${a.level?`<span class="sub-tag">${esc(a.level)}</span>`:""}
@@ -1871,6 +1878,8 @@ function renderEn(){
       </div>
       <div class="art-title">${esc(a.title)}</div>
       <div class="art-foot"><span><span class="k">${vn}</span> 个知识点</span>${a.translation?`<span>含译文</span>`:""}</div>
+      <button class="edit" data-type="enArt" data-id="${a.id}">编辑</button>
+      <button class="del" data-type="enArt" data-id="${a.id}">删除</button>
     </div>`;
   }).join("") : `<div class="empty" style="padding:24px 4px">还没有文章，点右上角「+ 文章」添加一篇，边读边积累单词</div>`;
   document.querySelectorAll("#articleList .art-card").forEach(card=>{
